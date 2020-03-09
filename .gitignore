@@ -1,0 +1,5 @@
+__pycache__/
+build/
+venv/
+.idea/
+cmake-build-debug/
