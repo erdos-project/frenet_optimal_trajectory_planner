@@ -8,7 +8,7 @@ try:
     cdll = ctypes.CDLL("build/libFrenetOptimalTrajectory.so")
 except:
     cdll = ctypes.CDLL(
-        "{}/pylot/planning/frenet_optimal_trajectory/frenet-optimal-trajectory-planner/"
+        "{}/pylot/planning/frenet_optimal_trajectory/frenet_optimal_trajectory_planner/"
         "build/libFrenetOptimalTrajectory.so".format(os.getcwd())
     )
 
