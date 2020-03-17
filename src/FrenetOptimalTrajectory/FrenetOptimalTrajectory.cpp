@@ -17,6 +17,15 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(vector<double>& x_,
         vector<tuple<double, double>>& obstacles_):
         x(x_), y(y_), s0(s0_), c_speed(c_speed_), c_d(c_d_), c_d_d(c_d_d_),
         c_d_dd(c_d_dd_), target_speed(target_speed_), obstacles(obstacles_) {
+    // make sure best_frenet_path is initialized
+    best_frenet_path = nullptr;
+
+    // exit if not enough waypoints
+    if (x.size() <= 2) {
+        return;
+    }
+
+    // construct spline path
     csp = new CubicSpline2D(x, y);
 
     // calculate the trajectories
