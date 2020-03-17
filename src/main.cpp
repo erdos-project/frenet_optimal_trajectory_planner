@@ -39,6 +39,10 @@ int main() {
     for (int i = 0; i < 40; i++) {
         FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(wx, wy, s0, c_speed, c_d, c_d_d, c_d_dd, 10, obstacles);
         FrenetPath* best_frenet_path = fot.getBestPath();
+        if (!best_frenet_path) {
+            print("Failed to find frenet optimal trajecotry.")
+            continue;
+        }
         s0 = best_frenet_path->s[1];
         c_d = best_frenet_path->d[1];
         c_d_d = best_frenet_path->d_d[1];
