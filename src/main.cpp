@@ -40,7 +40,7 @@ int main() {
         FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(wx, wy, s0, c_speed, c_d, c_d_d, c_d_dd, 10, obstacles);
         FrenetPath* best_frenet_path = fot.getBestPath();
         if (!best_frenet_path) {
-            print("Failed to find frenet optimal trajecotry.")
+            cout << "Failed to find frenet optimal trajecotry.\n";
             continue;
         }
         s0 = best_frenet_path->s[1];
