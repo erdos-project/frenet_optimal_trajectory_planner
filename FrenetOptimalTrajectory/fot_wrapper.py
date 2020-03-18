@@ -60,13 +60,15 @@ def get_fot_frenet_space(s0, c_speed, c_d, c_d_d, c_d_dd, wx, wy, obs,
     misc = np.zeros(5)
     if obs.shape[0] == 0:
         obs = np.empty((0, 2))
+    ox = np.copy(obs[:, 0]).astype(np.float64)
+    oy = np.copy(obs[:, 1]).astype(np.float64)
     success = _get_fot_frenet_space(
         c_double(s0), c_double(c_speed), c_double(c_d),
         c_double(c_d_d), c_double(c_d_dd),
         wx.ctypes.data_as(ctypes.POINTER(c_double)),
         wy.ctypes.data_as(ctypes.POINTER(c_double)),
-        obs[:, 0].ctypes.data_as(ctypes.POINTER(c_double)),
-        obs[:, 1].ctypes.data_as(ctypes.POINTER(c_double)),
+        ox.ctypes.data_as(ctypes.POINTER(c_double)),
+        oy.ctypes.data_as(ctypes.POINTER(c_double)),
         c_int(len(wx)), c_int(len(obs)), c_double(target_speed),
         result_x.ctypes.data_as(ctypes.POINTER(c_double)),
         result_y.ctypes.data_as(ctypes.POINTER(c_double)),
