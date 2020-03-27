@@ -7,7 +7,7 @@
 using namespace std;
 
 // Convert the frenet path to global path in terms of x, y, yaw, velocity
-void FrenetPath::to_global_path(CubicSpline2D* csp) {
+bool FrenetPath::to_global_path(CubicSpline2D* csp) {
     double ix, iy, iyaw, di, fx, fy, dx, dy;
     // calc global positions
     for (int i = 0; i < s.size(); i++) {
@@ -21,6 +21,11 @@ void FrenetPath::to_global_path(CubicSpline2D* csp) {
         fy = iy + di * sin(iyaw + M_PI / 2.0);
         x.push_back(fx);
         y.push_back(fy);
+    }
+
+    // not enough points to construct a valid path
+    if (x.size() <= 1) {
+        return false;
     }
 
     // calc yaw and ds
@@ -37,6 +42,8 @@ void FrenetPath::to_global_path(CubicSpline2D* csp) {
     for (int i = 0; i < yaw.size() - 1; i++) {
         c.push_back((yaw[i+1] - yaw[i]) / ds[i]);
     }
+
+    return true;
 }
 
 // Validate the calculated frenet paths against threshold speed, acceleration,
