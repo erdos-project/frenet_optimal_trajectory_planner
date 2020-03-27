@@ -58,7 +58,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
     double t, ti, tv, jp, js, ds;
     FrenetPath* fp, *tfp;
 
-    double di = -MAX_ROAD_WIDTH;
+    double di = -MAX_ROAD_WIDTH_L;
     // generate path to each offset goal
     do {
         ti = MINT;
@@ -131,6 +131,6 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
             delete fp;
         } while(ti < MAXT);
         di += D_ROAD_W;
-    } while (di < MAX_ROAD_WIDTH);
+    } while (di < MAX_ROAD_WIDTH_R);
 }
 
