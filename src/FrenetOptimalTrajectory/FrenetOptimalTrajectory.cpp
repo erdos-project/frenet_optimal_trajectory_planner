@@ -6,7 +6,6 @@
 
 #include <cmath>
 #include <iostream>
-#include <utility>
 
 using namespace std;
 
@@ -27,11 +26,6 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(vector<double>& x_,
 
     // construct spline path
     csp = new CubicSpline2D(x, y);
-    cout << "[";
-    for (auto s : csp->s) {
-        cout << "[" << csp->calc_x(s) << ", " << csp->calc_y(s) << "], ";
-    }
-    cout << "]\n";
 
     // calculate the trajectories
     calc_frenet_paths();
