@@ -16,9 +16,9 @@ public:
     double calc_curvature(double t);
     double calc_yaw(double t);
     double find_s(double x, double y, double s0);
-    std::vector<double> s;
 
 private:
+    std::vector<double> s;
     CubicSpline1D sx, sy;
     void calc_s(const std::vector<double>& x,
                 const std::vector<double>& y);
