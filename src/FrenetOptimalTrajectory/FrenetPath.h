@@ -32,7 +32,7 @@ public:
     double cf = 0.0;                // final cost
 
     FrenetPath() = default;
-    void to_global_path(CubicSpline2D* csp);
+    bool to_global_path(CubicSpline2D* csp);
     bool is_valid_path(const std::vector<std::tuple<double, double>>& obstacles);
     bool is_collision(const std::vector<std::tuple<double, double>>& obstacles);
 };

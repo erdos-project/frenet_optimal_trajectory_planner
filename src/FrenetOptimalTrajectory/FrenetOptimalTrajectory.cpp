@@ -6,7 +6,6 @@
 
 #include <cmath>
 #include <iostream>
-#include <utility>
 
 using namespace std;
 
@@ -117,8 +116,8 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
 
 
                 // append
-                tfp->to_global_path(csp);
-                if (!tfp->is_valid_path(obstacles)) {
+                bool success = tfp->to_global_path(csp);
+                if (!success || !tfp->is_valid_path(obstacles)) {
                     // deallocate memory and continue
                     delete tfp;
                     tv += D_T_S;
