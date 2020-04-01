@@ -2,7 +2,13 @@ import numpy as np
 import os
 
 from ctypes import c_double, c_int, POINTER, Structure, CDLL
-from py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters
+
+try:
+    from py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters
+except:
+    from pylot.planning.frenet_optimal_trajectory\
+        .frenet_optimal_trajectory_planner.FrenetOptimalTrajectory\
+        .py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters
 
 try:
     cdll = CDLL("build/libFrenetOptimalTrajectory.so")
