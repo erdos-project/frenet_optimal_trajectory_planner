@@ -36,7 +36,7 @@ def main():
         "max_speed": 25.0,
         "max_accel": 6.0,
         "max_curvature": 10.0,
-        "max_road_width_l": 10.0,
+        "max_road_width_l": 5.0,
         "max_road_width_r": 1.0,
         "d_road_w": 0.25,
         "dt": 0.25,
