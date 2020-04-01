@@ -12,7 +12,6 @@ include_directories("${CMAKE_SOURCE_DIR}/src"
 add_library(FrenetOptimalTrajectory SHARED
             src/main.cpp
             src/utils.h
-            src/constants.h
             src/Polynomials/QuarticPolynomial.cpp
             src/Polynomials/QuarticPolynomial.h
             src/Polynomials/QuinticPolynomial.cpp
@@ -25,11 +24,11 @@ add_library(FrenetOptimalTrajectory SHARED
             src/FrenetOptimalTrajectory/FrenetOptimalTrajectory.h
             src/FrenetOptimalTrajectory/FrenetPath.cpp
             src/FrenetOptimalTrajectory/FrenetPath.h
-            src/FrenetOptimalTrajectory/fot_wrapper.cpp)
+            src/FrenetOptimalTrajectory/fot_wrapper.cpp
+            src/FrenetOptimalTrajectory/py_cpp_struct.h)
 add_executable(FrenetOptimalTrajectoryTest
                src/main.cpp
                src/utils.h
-               src/constants.h
                src/Polynomials/QuarticPolynomial.cpp
                src/Polynomials/QuarticPolynomial.h
                src/Polynomials/QuinticPolynomial.cpp
@@ -42,6 +41,7 @@ add_executable(FrenetOptimalTrajectoryTest
                src/FrenetOptimalTrajectory/FrenetOptimalTrajectory.h
                src/FrenetOptimalTrajectory/FrenetPath.cpp
                src/FrenetOptimalTrajectory/FrenetPath.h
-               src/FrenetOptimalTrajectory/fot_wrapper.cpp)
+               src/FrenetOptimalTrajectory/fot_wrapper.cpp
+               src/FrenetOptimalTrajectory/py_cpp_struct.h)
 target_link_libraries(FrenetOptimalTrajectory Eigen3::Eigen)
 target_link_libraries(FrenetOptimalTrajectoryTest Eigen3::Eigen)

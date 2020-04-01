@@ -1,7 +1,6 @@
 #include "FrenetOptimalTrajectory.h"
 #include "QuarticPolynomial.h"
 #include "QuinticPolynomial.h"
-#include "constants.h"
 #include "utils.h"
 
 #include <cmath>
@@ -10,12 +9,20 @@
 using namespace std;
 
 // Compute the frenet optimal trajectory
-FrenetOptimalTrajectory::FrenetOptimalTrajectory(vector<double>& x_,
-        vector<double>& y_, double s0_, double c_speed_, double c_d_,
-        double c_d_d_, double c_d_dd_, double target_speed_,
-        vector<tuple<double, double>>& obstacles_):
-        x(x_), y(y_), s0(s0_), c_speed(c_speed_), c_d(c_d_), c_d_d(c_d_d_),
-        c_d_dd(c_d_dd_), target_speed(target_speed_), obstacles(obstacles_) {
+FrenetOptimalTrajectory::FrenetOptimalTrajectory(
+        FrenetInitialConditions *fot_ic_, FrenetHyperparameters *fot_hp_) {
+    // parse the waypoints and obstacles
+    fot_ic = fot_ic_;
+    fot_hp = fot_hp_;
+    x.assign(fot_ic->wx, fot_ic->wx + fot_ic->nw);
+    y.assign(fot_ic->wy, fot_ic->wy + fot_ic->nw);
+    vector<double> ox (fot_ic->ox, fot_ic->ox + fot_ic->no);
+    vector<double> oy (fot_ic->oy, fot_ic->oy + fot_ic->no);
+    for (int i = 0; i < ox.size(); i++) {
+        tuple<double, double> ob (ox[i], oy[i]);
+        obstacles.push_back(ob);
+    }
+
     // make sure best_frenet_path is initialized
     best_frenet_path = nullptr;
 
@@ -57,16 +64,17 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
     double t, ti, tv, jp, js, ds;
     FrenetPath* fp, *tfp;
 
-    double di = -MAX_ROAD_WIDTH_L;
+    double di = -fot_hp->max_road_width_l;
     // generate path to each offset goal
     do {
-        ti = MINT;
+        ti = fot_hp->mint;
         // lateral motion planning
         do {
-            ti += DT;
-            fp = new FrenetPath();
-            QuinticPolynomial lat_qp = QuinticPolynomial(c_d, c_d_d, c_d_dd, di,
-                    0.0, 0.0, ti);
+            ti += fot_hp->dt;
+            fp = new FrenetPath(fot_hp);
+            QuinticPolynomial lat_qp = QuinticPolynomial(
+                fot_ic->c_d, fot_ic->c_d_d, fot_ic->c_d_dd, di, 0.0, 0.0, ti
+            );
             t = 0;
             // construct frenet path
             do {
@@ -75,17 +83,17 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                 fp->d_d.push_back(lat_qp.calc_first_derivative(t));
                 fp->d_dd.push_back(lat_qp.calc_second_derivative(t));
                 fp->d_ddd.push_back(lat_qp.calc_third_derivative(t));
-                t += DT;
+                t += fot_hp->dt;
             } while (t < ti);
 
             // velocity keeping
-            tv = target_speed - D_T_S * N_S_SAMPLE;
+            tv = fot_ic->target_speed - fot_hp->d_t_s * fot_hp->n_s_sample;
             do {
                 jp = 0;
                 js = 0;
 
                 // copy frenet path
-                tfp = new FrenetPath();
+                tfp = new FrenetPath(fot_hp);
                 for (double tt : fp->t) {
                     tfp->t.push_back(tt);
                     tfp->d.push_back(lat_qp.calc_point(tt));
@@ -95,8 +103,9 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                     jp += pow(lat_qp.calc_third_derivative(tt), 2);
                     // square jerk
                 }
-                QuarticPolynomial lon_qp = QuarticPolynomial(s0, c_speed,
-                        0.0, tv, 0.0, ti);
+                QuarticPolynomial lon_qp = QuarticPolynomial(
+                    fot_ic->s0, fot_ic->c_speed, 0.0, tv, 0.0, ti
+                );
 
                 // longitudinal motion
                 for (double tp : tfp->t) {
@@ -109,27 +118,30 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                 }
 
                 // calculate costs
-                ds = pow(target_speed - tfp->s_d.back(), 2);
-                tfp->cd = KJ * jp + KT * ti + KD * pow(tfp->d.back(), 2);
-                tfp->cv = KJ * js + KT * ti + KD * ds;
-                tfp->cf = KLAT * tfp->cd + KLON * tfp->cv;
-
+                bool success = tfp->to_global_path(csp);
 
                 // append
-                bool success = tfp->to_global_path(csp);
                 if (!success || !tfp->is_valid_path(obstacles)) {
                     // deallocate memory and continue
                     delete tfp;
-                    tv += D_T_S;
+                    tv += fot_hp->d_t_s;
                     continue;
                 }
+                ds = pow(fot_ic->target_speed - tfp->s_d.back(), 2);
+                tfp->cd = fot_hp->kj * jp + fot_hp->kt * ti +
+                          fot_hp->kd * pow(tfp->d.back(), 2);
+                tfp->cv = fot_hp->kj * js + fot_hp->kt * ti +
+                          fot_hp->kd * ds;
+                tfp->co = fot_hp->ko * 1.0 / tfp->dist_to_closest(obstacles);
+                tfp->cf = fot_hp->klat * tfp->cd + fot_hp->klon * tfp->cv + tfp->co;
+
                 frenet_paths.push_back(tfp);
-                tv += D_T_S;
-            } while (tv < target_speed + D_T_S * N_S_SAMPLE);
+                tv += fot_hp->d_t_s;
+            } while (tv < fot_ic->target_speed + fot_hp->d_t_s * fot_hp->n_s_sample);
             // make sure to deallocate
             delete fp;
-        } while(ti < MAXT);
-        di += D_ROAD_W;
-    } while (di < MAX_ROAD_WIDTH_R);
+        } while(ti < fot_hp->maxt);
+        di += fot_hp->d_road_w;
+    } while (di < fot_hp->max_road_width_r);
 }
 
