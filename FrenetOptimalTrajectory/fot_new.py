@@ -48,7 +48,6 @@ def main():
         "kj": 0.1,
         "kt": 0.1,
         "kd": 1.0,
-        "ko": 100.0,
         "klat": 1.0,
         "klon": 1.0
     }
@@ -76,17 +75,12 @@ def main():
         # reconstruct initial_conditions
         if success:
             initial_conditions['pos'] = np.array([result_x[1], result_y[1]])
-            initial_conditions['vel'] = np.array([speeds_x[1], speeds_y[1]])
+            initial_conditions['vel'] = np.array([speeds_x[1], -speeds_y[1]])
             initial_conditions['ps'] = misc[0]
-            # print(initial_conditions)
         else:
-            print("Failed")
-            print(initial_conditions)
-            print(misc)
             break
 
-
-    # break if near goal
+        # break if near goal
         if np.hypot(result_x[1] - wx[-1], result_y[1] - wy[-1]) <= 1.0:
             print("Goal")
             break

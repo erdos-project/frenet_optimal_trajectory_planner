@@ -89,7 +89,7 @@ bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
             // exit if within OBSTACLE_RADIUS
             double xd = x[i] - get<0>(obstacle);
             double yd = y[i] - get<1>(obstacle);
-            if (norm(xd, yd) <= fot_hp->obstacle_radius - 2) {
+            if (norm(xd, yd) <= fot_hp->obstacle_radius) {
                 return true;
             }
         }
@@ -97,18 +97,4 @@ bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
 
     // no collisions
     return false;
-}
-
-double FrenetPath::dist_to_closest(const vector<tuple<double, double>>& obstacles) {
-    double min_dist = INFINITY;
-    for (tuple<double, double> obstacle : obstacles) {
-        // calculate distance to each point in path
-        for (int i = 0; i < x.size(); i++) {
-            // exit if within OBSTACLE_RADIUS
-            double xd = x[i] - get<0>(obstacle);
-            double yd = y[i] - get<1>(obstacle);
-            min_dist = min(min_dist, norm(xd, yd));
-        }
-    }
-    return min_dist;
 }

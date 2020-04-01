@@ -35,7 +35,6 @@ class FrenetHyperparameters(Structure):
         ("kj", c_double),
         ("kt", c_double),
         ("kd", c_double),
-        ("ko", c_double),
         ("klat", c_double),
         ("klon", c_double),
     ]

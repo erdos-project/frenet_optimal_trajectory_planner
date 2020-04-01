@@ -39,7 +39,6 @@ public:
     bool to_global_path(CubicSpline2D* csp);
     bool is_valid_path(const vector<tuple<double, double>>& obstacles);
     bool is_collision(const vector<tuple<double, double>>& obstacles);
-    double dist_to_closest(const vector<tuple<double, double>>& obstacles);
 private:
     // Hyperparameters
     FrenetHyperparameters *fot_hp;

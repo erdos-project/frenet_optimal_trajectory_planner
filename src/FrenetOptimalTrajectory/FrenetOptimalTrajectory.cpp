@@ -132,7 +132,6 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                           fot_hp->kd * pow(tfp->d.back(), 2);
                 tfp->cv = fot_hp->kj * js + fot_hp->kt * ti +
                           fot_hp->kd * ds;
-                tfp->co = fot_hp->ko * 1.0 / tfp->dist_to_closest(obstacles);
                 tfp->cf = fot_hp->klat * tfp->cd + fot_hp->klon * tfp->cv + tfp->co;
 
                 frenet_paths.push_back(tfp);

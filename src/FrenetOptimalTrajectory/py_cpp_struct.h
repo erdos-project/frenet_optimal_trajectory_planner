@@ -31,7 +31,6 @@ struct FrenetHyperparameters {
     double kj;
     double kt;
     double kd;
-    double ko;
     double klat;
     double klon;
 };

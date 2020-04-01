@@ -61,7 +61,6 @@ def _parse_hyperparameters(hp):
         hp["kj"],
         hp["kt"],
         hp["kd"],
-        hp["ko"],
         hp["klat"],
         hp["klon"]
     )
