@@ -3,9 +3,6 @@
 #include "py_cpp_struct.h"
 
 #include <iostream>
-#include <ctime>
-#include <vector>
-#include <tuple>
 
 using namespace std;
 
@@ -26,7 +23,7 @@ int main() {
         34.6,
         7.10964962,
         -1.35277168,
-        3.82975602,
+        -1.86,
         0.0,
         10,
         wx,

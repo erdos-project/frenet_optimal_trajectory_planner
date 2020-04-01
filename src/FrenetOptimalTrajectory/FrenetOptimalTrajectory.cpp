@@ -4,7 +4,6 @@
 #include "utils.h"
 
 #include <cmath>
-#include <iostream>
 
 using namespace std;
 
@@ -16,10 +15,8 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
     fot_hp = fot_hp_;
     x.assign(fot_ic->wx, fot_ic->wx + fot_ic->nw);
     y.assign(fot_ic->wy, fot_ic->wy + fot_ic->nw);
-    vector<double> ox (fot_ic->ox, fot_ic->ox + fot_ic->no);
-    vector<double> oy (fot_ic->oy, fot_ic->oy + fot_ic->no);
-    for (int i = 0; i < ox.size(); i++) {
-        tuple<double, double> ob (ox[i], oy[i]);
+    for (int i = 0; i < fot_ic->no; i++) {
+        tuple<double, double> ob (fot_ic->ox[i], fot_ic->oy[i]);
         obstacles.push_back(ob);
     }
 
@@ -66,29 +63,30 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
 
     double di = -fot_hp->max_road_width_l;
     // generate path to each offset goal
-    do {
+    while (di <= fot_hp->max_road_width_r) {
         ti = fot_hp->mint;
         // lateral motion planning
-        do {
+        while (ti <= fot_hp->maxt) {
             ti += fot_hp->dt;
             fp = new FrenetPath(fot_hp);
             QuinticPolynomial lat_qp = QuinticPolynomial(
                 fot_ic->c_d, fot_ic->c_d_d, fot_ic->c_d_dd, di, 0.0, 0.0, ti
             );
-            t = 0;
+
             // construct frenet path
-            do {
+            t = 0;
+            while (t <= ti) {
                 fp->t.push_back(t);
                 fp->d.push_back(lat_qp.calc_point(t));
                 fp->d_d.push_back(lat_qp.calc_first_derivative(t));
                 fp->d_dd.push_back(lat_qp.calc_second_derivative(t));
                 fp->d_ddd.push_back(lat_qp.calc_third_derivative(t));
                 t += fot_hp->dt;
-            } while (t < ti);
+            }
 
             // velocity keeping
             tv = fot_ic->target_speed - fot_hp->d_t_s * fot_hp->n_s_sample;
-            do {
+            while (tv <= fot_ic->target_speed + fot_hp->d_t_s * fot_hp->n_s_sample) {
                 jp = 0;
                 js = 0;
 
@@ -117,16 +115,16 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                     // square jerk
                 }
 
-                // calculate costs
+                // delete if failure or invalid path
                 bool success = tfp->to_global_path(csp);
-
-                // append
                 if (!success || !tfp->is_valid_path(obstacles)) {
                     // deallocate memory and continue
                     delete tfp;
                     tv += fot_hp->d_t_s;
                     continue;
                 }
+
+                // calculate costs
                 ds = pow(fot_ic->target_speed - tfp->s_d.back(), 2);
                 tfp->cd = fot_hp->kj * jp + fot_hp->kt * ti +
                           fot_hp->kd * pow(tfp->d.back(), 2);
@@ -136,11 +134,11 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
 
                 frenet_paths.push_back(tfp);
                 tv += fot_hp->d_t_s;
-            } while (tv < fot_ic->target_speed + fot_hp->d_t_s * fot_hp->n_s_sample);
+            }
             // make sure to deallocate
             delete fp;
-        } while(ti < fot_hp->maxt);
+        }
         di += fot_hp->d_road_w;
-    } while (di < fot_hp->max_road_width_r);
+    }
 }
 
