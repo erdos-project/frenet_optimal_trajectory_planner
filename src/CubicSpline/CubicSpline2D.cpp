@@ -71,7 +71,7 @@ double CubicSpline2D::calc_yaw(double t) {
 double CubicSpline2D::find_s(double x, double y, double s0) {
     double s_closest = s0;
     double closest = INFINITY;
-    double si = s0;
+    double si = s.front();
 
     do {
         double px = calc_x(si);
@@ -82,6 +82,6 @@ double CubicSpline2D::find_s(double x, double y, double s0) {
             s_closest = si;
         }
         si += 0.1;
-    } while (si < s0 + 10);
+    } while (si < s.back());
     return s_closest;
 }
