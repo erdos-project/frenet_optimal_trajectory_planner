@@ -15,25 +15,27 @@
 #define FRENET_OPTIMAL_TRAJECTORY_FRENET_OPTIMAL_TRAJECTORY_H
 
 #include "FrenetPath.h"
+#include "py_cpp_struct.h"
 #include "CubicSpline2D.h"
 
 #include <vector>
 
 class FrenetOptimalTrajectory {
 public:
-    FrenetOptimalTrajectory(std::vector<double>& x, std::vector<double>& y,
-            double s0, double c_speed, double c_d, double c_d_d, double
-            c_d_dd, double target_speed,
-            std::vector<std::tuple<double, double>>& obstacles);
+    FrenetOptimalTrajectory(
+        FrenetInitialConditions *fot_ic_,
+        FrenetHyperparameters *fot_hp_
+    );
     ~FrenetOptimalTrajectory();
     FrenetPath* getBestPath();
 private:
-    FrenetPath* best_frenet_path;
-    CubicSpline2D* csp;
+    FrenetInitialConditions *fot_ic;
+    FrenetHyperparameters *fot_hp;
+    FrenetPath *best_frenet_path;
+    CubicSpline2D *csp;
     std::vector<std::tuple<double, double>> obstacles;
     std::vector<double> x, y;
-    double s0, c_speed, c_d, c_d_d, c_d_dd, target_speed;
-    std::vector<FrenetPath*> frenet_paths;
+    std::vector<FrenetPath *> frenet_paths;
     void calc_frenet_paths();
 };
 

@@ -1,9 +1,9 @@
 #include "FrenetOptimalTrajectory.h"
 #include "FrenetPath.h"
+#include "py_cpp_struct.h"
 #include "CubicSpline2D.h"
 #include "utils.h"
 
-#include <iostream>
 #include <vector>
 
 using namespace std;
@@ -14,37 +14,27 @@ extern "C" {
     // in frenet space.
     //
     // Arguments:
-    //      s0: initial longitudinal position along spline
-    //      c_speed: initial velocity
-    //      c_d: initial lateral offset
-    //      c_d_d: initial lateral velocity
-    //      c_d_dd: initial lateral acceleration
-    //      xp, yp: list of waypoint coordinates
-    //      xo, yo: list of obstacle coordinates
-    //      np, no: length of the waypoint list and obstacle list
-    //      target_speed: target velocity in [m/s]
+    //      fot_ic (FrenetInitialConditions *):
+    //          struct ptr containing relevant initial conditions to compute
+    //          Frenet Optimal Trajectory
+    //      fot_hp (FrenetHyperparameters *):
+    //          struct ptr containing relevant hyperparameters to compute
+    //          Frenet Optimal Trajectory
+    //      x_path, y_path, speeds (double *):
+    //          ptr to storage arrays for Frenet Optimal Trajectory
+    //      params (double *):
+    //          ptr to store initial conditions for debugging
+    //
     // Returns:
-    //      x_path, y_path: the frenet optimal trajectory in cartesian space
-    //      misc: the next states s0, c_speed, c_d, c_d_d, c_d_dd
-    int get_fot_frenet_space(
-            double s0, double c_speed, double c_d, double c_d_d, double c_d_dd,
-            double* xp, double* yp, double* xo, double* yo, int np, int no,
-            double target_speed, double* x_path, double* y_path,
-            double* speeds, double* misc
+    //      1 if successful, 0 if failure
+    //      Also stores the Frenet Optimal Trajectory into x_path, y_path,
+    //      speeds if it exists
+    int run_fot(
+            FrenetInitialConditions *fot_ic, FrenetHyperparameters *fot_hp,
+            double *x_path, double *y_path, double *speeds,
+            double *x_speeds, double *y_speeds, double *params
             ) {
-        vector<double> wx (xp, xp + np);
-        vector<double> wy (yp, yp + np);
-
-        vector<tuple<double, double>> obstacles;
-        vector<double> ox (xo, xo + no);
-        vector<double> oy (yo, yo + no);
-        for (int i = 0; i < ox.size(); i++) {
-            tuple<double, double> ob (ox[i], oy[i]);
-            obstacles.push_back(ob);
-        }
-
-        FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(wx, wy, s0,
-                c_speed, c_d, c_d_d, c_d_dd, target_speed, obstacles);
+        FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
         FrenetPath* best_frenet_path = fot.getBestPath();
 
         int success = 0;
@@ -54,6 +44,8 @@ extern "C" {
                 x_path[i] = best_frenet_path->x[i];
                 y_path[i] = best_frenet_path->y[i];
                 speeds[i] = best_frenet_path->s_d[i];
+                x_speeds[i] = cos(best_frenet_path->yaw[i]) * speeds[i];
+                y_speeds[i] = sin(best_frenet_path->yaw[i]) * speeds[i];
                 last += 1;
             }
 
@@ -61,19 +53,23 @@ extern "C" {
             x_path[last] = NAN;
             y_path[last] = NAN;
             speeds[last] = NAN;
+            x_speeds[last] = NAN;
+            y_speeds[last] = NAN;
 
-            misc[0] = best_frenet_path->s[1];
-            misc[1] = best_frenet_path->s_d[1];
-            misc[2] = best_frenet_path->d[1];
-            misc[3] = best_frenet_path->d_d[1];
-            misc[4] = best_frenet_path->d_dd[1];
+            // store info for debug
+            params[0] = best_frenet_path->s[1];
+            params[1] = best_frenet_path->s_d[1];
+            params[2] = best_frenet_path->d[1];
+            params[3] = best_frenet_path->d_d[1];
+            params[4] = best_frenet_path->d_dd[1];
+
             success = 1;
         }
         return success;
     }
 
     // Convert the initial conditions from cartesian space to frenet space
-    void compute_initial_conditions(
+    void to_frenet_initial_conditions(
             double s0, double x, double y, double vx,
             double vy, double forward_speed, double* xp, double* yp, int np,
             double* initial_conditions

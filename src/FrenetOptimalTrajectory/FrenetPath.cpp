@@ -1,10 +1,13 @@
 #include "FrenetPath.h"
-#include "constants.h"
 #include "utils.h"
 
 #include <algorithm>
 
 using namespace std;
+
+FrenetPath::FrenetPath(FrenetHyperparameters *fot_hp_) {
+    fot_hp = fot_hp_;
+}
 
 // Convert the frenet path to global path in terms of x, y, yaw, velocity
 bool FrenetPath::to_global_path(CubicSpline2D* csp) {
@@ -50,16 +53,26 @@ bool FrenetPath::to_global_path(CubicSpline2D* csp) {
 // curvature and collision checks
 bool FrenetPath::is_valid_path(const vector<tuple<double, double>>& obstacles) {
     if (any_of(s_d.begin(), s_d.end(),
-            [](int i){return abs(i) > MAX_SPEED;})) return false;
+            [this](int i){return abs(i) > fot_hp->max_speed;})) {
+        return false;
+    }
     // max accel check
     else if (any_of(s_dd.begin(), s_dd.end(),
-            [](int i){return abs(i) > MAX_ACCEL;})) return false;
+            [this](int i){return abs(i) > fot_hp->max_accel;})) {
+        return false;
+    }
     // max curvature check
     else if (any_of(c.begin(), c.end(),
-            [](int i){return abs(i) > MAX_CURVATURE;})) return false;
+            [this](int i){return abs(i) > fot_hp->max_curvature;})) {
+        return false;
+    }
     // collision check
-    else if (is_collision(obstacles)) return false;
-    else return true;
+    else if (is_collision(obstacles)) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
@@ -75,7 +88,7 @@ bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
             // exit if within OBSTACLE_RADIUS
             double xd = x[i] - get<0>(obstacle);
             double yd = y[i] - get<1>(obstacle);
-            if (norm(xd, yd) <= OBSTACLE_RADIUS) {
+            if (norm(xd, yd) <= fot_hp->obstacle_radius) {
                 return true;
             }
         }
