@@ -56,8 +56,11 @@ extern "C" {
             x_path[last] = NAN;
             y_path[last] = NAN;
             speeds[last] = NAN;
-//            x_speeds[last] = NAN;
-//            y_speeds[last] = NAN;
+            ix[last] = NAN;
+            iy[last] = NAN;
+            iyaw[last] = NAN;
+            d[last] = NAN;
+            s[last] = NAN;
 
             // store info for debug
             params[0] = best_frenet_path->s[1];
