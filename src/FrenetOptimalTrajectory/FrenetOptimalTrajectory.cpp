@@ -67,7 +67,6 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
         ti = fot_hp->mint;
         // lateral motion planning
         while (ti <= fot_hp->maxt) {
-            ti += fot_hp->dt;
             fp = new FrenetPath(fot_hp);
             QuinticPolynomial lat_qp = QuinticPolynomial(
                 fot_ic->c_d, fot_ic->c_d_d, fot_ic->c_d_dd, di, 0.0, 0.0, ti
@@ -92,15 +91,11 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
 
                 // copy frenet path
                 tfp = new FrenetPath(fot_hp);
-                for (double tt : fp->t) {
-                    tfp->t.push_back(tt);
-                    tfp->d.push_back(lat_qp.calc_point(tt));
-                    tfp->d_d.push_back(lat_qp.calc_first_derivative(tt));
-                    tfp->d_dd.push_back(lat_qp.calc_second_derivative(tt));
-                    tfp->d_ddd.push_back(lat_qp.calc_third_derivative(tt));
-                    jp += pow(lat_qp.calc_third_derivative(tt), 2);
-                    // square jerk
-                }
+                tfp->t.assign(fp->t.begin(), fp->t.end());
+                tfp->d.assign(fp->d.begin(), fp->d.end());
+                tfp->d_d.assign(fp->d_d.begin(), fp->d_d.end());
+                tfp->d_dd.assign(fp->d_dd.begin(), fp->d_dd.end());
+                tfp->d_ddd.assign(fp->d_ddd.begin(), fp->d_ddd.end());
                 QuarticPolynomial lon_qp = QuarticPolynomial(
                     fot_ic->s0, fot_ic->c_speed, 0.0, tv, 0.0, ti
                 );
@@ -111,6 +106,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                     tfp->s_d.push_back(lon_qp.calc_first_derivative(tp));
                     tfp->s_dd.push_back(lon_qp.calc_second_derivative(tp));
                     tfp->s_ddd.push_back(lon_qp.calc_third_derivative(tp));
+                    jp += pow(lat_qp.calc_third_derivative(tp), 2);
                     js += pow(lon_qp.calc_third_derivative(tp), 2);
                     // square jerk
                 }
@@ -130,11 +126,12 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                           fot_hp->kd * pow(tfp->d.back(), 2);
                 tfp->cv = fot_hp->kj * js + fot_hp->kt * ti +
                           fot_hp->kd * ds;
-                tfp->cf = fot_hp->klat * tfp->cd + fot_hp->klon * tfp->cv + tfp->co;
+                tfp->cf = fot_hp->klat * tfp->cd + fot_hp->klon * tfp->cv;
 
                 frenet_paths.push_back(tfp);
                 tv += fot_hp->d_t_s;
             }
+            ti += fot_hp->dt;
             // make sure to deallocate
             delete fp;
         }

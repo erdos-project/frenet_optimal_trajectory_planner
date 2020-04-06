@@ -32,7 +32,6 @@ public:
     // Cost attributes
     double cd = 0.0;                // lateral cost
     double cv = 0.0;                // longitudinal cost
-    double co = 0.0;                // obstacle cost
     double cf = 0.0;                // final cost
 
     FrenetPath(FrenetHyperparameters *fot_hp_);

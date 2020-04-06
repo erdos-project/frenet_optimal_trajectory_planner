@@ -20,8 +20,8 @@ bool FrenetPath::to_global_path(CubicSpline2D* csp) {
 
         iyaw = csp->calc_yaw(s[i]);
         di = d[i];
-        fx = ix + di * cos(iyaw + M_PI / 2.0);
-        fy = iy + di * sin(iyaw + M_PI / 2.0);
+        fx = ix + di * cos(iyaw + M_PI_2);
+        fy = iy + di * sin(iyaw + M_PI_2);
         x.push_back(fx);
         y.push_back(fy);
     }
