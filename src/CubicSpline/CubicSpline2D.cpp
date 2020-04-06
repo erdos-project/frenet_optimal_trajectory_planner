@@ -87,6 +87,7 @@ double CubicSpline2D::find_s(double x, double y, double s0) {
     return s_closest;
 }
 
+// Remove any collinear points from given list of points by the triangle rule
 vector<vector<double>>
 CubicSpline2D::remove_collinear_points(vector<double> x, vector<double> y) {
     vector<vector<double>> filtered_points;
@@ -107,6 +108,7 @@ CubicSpline2D::remove_collinear_points(vector<double> x, vector<double> y) {
         x_.push_back(x[i]);
         y_.push_back(y[i]);
     }
+    // make sure to add the last point in case all points are collinear
     x_.push_back(x.back());
     y_.push_back(y.back());
     filtered_points.push_back(x_);
