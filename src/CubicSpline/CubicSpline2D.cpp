@@ -95,7 +95,7 @@ CubicSpline2D::remove_collinear_points(vector<double> x, vector<double> y) {
     x_.push_back(x[1]);
     y_.push_back(y[0]);
     y_.push_back(y[1]);
-    for (int i = 2; i < x.size(); i++) {
+    for (int i = 2; i < x.size()-1; i++) {
         bool collinear = are_collinear(
             x[i - 2], y[i - 2],
             x[i - 1], y[i - 1],
@@ -107,6 +107,8 @@ CubicSpline2D::remove_collinear_points(vector<double> x, vector<double> y) {
         x_.push_back(x[i]);
         y_.push_back(y[i]);
     }
+    x_.push_back(x.back());
+    y_.push_back(y.back());
     filtered_points.push_back(x_);
     filtered_points.push_back(y_);
     return filtered_points;
