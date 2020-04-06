@@ -29,49 +29,50 @@ extern "C" {
     //      1 if successful, 0 if failure
     //      Also stores the Frenet Optimal Trajectory into x_path, y_path,
     //      speeds if it exists
-    int run_fot(
+    void run_fot(
             FrenetInitialConditions *fot_ic, FrenetHyperparameters *fot_hp,
-            double *x_path, double *y_path, double *speeds,
-            double *ix, double *iy, double *iyaw, double *d, double *s, double *params
+            FrenetReturnValues *fot_rv
             ) {
         FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
         FrenetPath* best_frenet_path = fot.getBestPath();
-
-        int success = 0;
         if (best_frenet_path && !best_frenet_path->x.empty()){
             int last = 0;
             for (int i = 0; i < best_frenet_path->x.size(); i++) {
-                x_path[i] = best_frenet_path->x[i];
-                y_path[i] = best_frenet_path->y[i];
-                speeds[i] = best_frenet_path->s_d[i];
-                ix[i] = best_frenet_path->ix[i];
-                iy[i] = best_frenet_path->iy[i];
-                iyaw[i] = best_frenet_path->iyaw[i];
-                d[i] = best_frenet_path->d[i];
-                s[i] = best_frenet_path->s[i];
+                fot_rv->x_path[i] = best_frenet_path->x[i];
+                fot_rv->y_path[i] = best_frenet_path->y[i];
+                fot_rv->speeds[i] = best_frenet_path->s_d[i];
+                fot_rv->ix[i] = best_frenet_path->ix[i];
+                fot_rv->iy[i] = best_frenet_path->iy[i];
+                fot_rv->iyaw[i] = best_frenet_path->iyaw[i];
+                fot_rv->d[i] = best_frenet_path->d[i];
+                fot_rv->s[i] = best_frenet_path->s[i];
+                fot_rv->speeds_x[i] = cos(best_frenet_path->yaw[i]) *
+                    fot_rv->speeds[i];
+                fot_rv->speeds_y[i] = sin(best_frenet_path->yaw[i]) *
+                    fot_rv->speeds[i];
                 last += 1;
             }
 
             // indicate last point in the path
-            x_path[last] = NAN;
-            y_path[last] = NAN;
-            speeds[last] = NAN;
-            ix[last] = NAN;
-            iy[last] = NAN;
-            iyaw[last] = NAN;
-            d[last] = NAN;
-            s[last] = NAN;
+            fot_rv->success = 1;
+            fot_rv->x_path[last] = NAN;
+            fot_rv->y_path[last] = NAN;
+            fot_rv->speeds[last] = NAN;
+            fot_rv->ix[last] = NAN;
+            fot_rv->iy[last] = NAN;
+            fot_rv->iyaw[last] = NAN;
+            fot_rv->d[last] = NAN;
+            fot_rv->s[last] = NAN;
+            fot_rv->speeds_x[last] = NAN;
+            fot_rv->speeds_y[last] = NAN;
 
             // store info for debug
-            params[0] = best_frenet_path->s[1];
-            params[1] = best_frenet_path->s_d[1];
-            params[2] = best_frenet_path->d[1];
-            params[3] = best_frenet_path->d_d[1];
-            params[4] = best_frenet_path->d_dd[1];
-
-            success = 1;
+            fot_rv->params[0] = best_frenet_path->s[1];
+            fot_rv->params[1] = best_frenet_path->s_d[1];
+            fot_rv->params[2] = best_frenet_path->d[1];
+            fot_rv->params[3] = best_frenet_path->d_d[1];
+            fot_rv->params[4] = best_frenet_path->d_dd[1];
         }
-        return success;
     }
 
     // Convert the initial conditions from cartesian space to frenet space
