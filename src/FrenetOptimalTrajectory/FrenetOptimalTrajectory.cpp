@@ -84,7 +84,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                 fp->d_dd.push_back(lat_qp.calc_second_derivative(t));
                 fp->d_ddd.push_back(lat_qp.calc_third_derivative(t));
                 jp += pow(lat_qp.calc_third_derivative(t), 2);
-                jd += pow(lat_qp.calc_point(t), 4);
+                jd += pow(max(lat_qp.calc_point(t), 1.0), 4);
                 t += fot_hp->dt;
             }
 
@@ -123,14 +123,16 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                     continue;
                 }
 
-                // calculate costs
+                // total lateral cost
+                tfp->cd = fot_hp->kj * jp + // accumulated lateral jerk
+                          fot_hp->kt * ti + // time taken cost
+                          fot_hp->kd * jd;  // accumulated deviation from lane center
+                // total longitudinal cost
                 ds = pow(fot_ic->target_speed - tfp->s_d.back(), 2);
-                tfp->cd = fot_hp->kj * jp + // lateral jerk
-                          fot_hp->kt * ti + // time cost
-                          fot_hp->kd * jd;  // deviation from lane center
-                tfp->cv = fot_hp->kj * js + // longitudinal jerk
-                          fot_hp->kt * ti + // time cost
+                tfp->cv = fot_hp->kj * js + // accumulated longitudinal jerk
+                          fot_hp->kt * ti + // time taken cost
                           fot_hp->kd * ds;  // deviation from longitudinal goal
+                // final cost
                 tfp->cf = fot_hp->klat * tfp->cd + fot_hp->klon * tfp->cv;
 
                 frenet_paths.push_back(tfp);
