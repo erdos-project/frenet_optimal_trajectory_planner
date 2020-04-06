@@ -32,7 +32,7 @@ extern "C" {
     int run_fot(
             FrenetInitialConditions *fot_ic, FrenetHyperparameters *fot_hp,
             double *x_path, double *y_path, double *speeds,
-            double *ix, double *iy, double *iyaw, double *d, double *params
+            double *ix, double *iy, double *iyaw, double *d, double *s, double *params
             ) {
         FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
         FrenetPath* best_frenet_path = fot.getBestPath();
@@ -48,6 +48,7 @@ extern "C" {
                 iy[i] = best_frenet_path->iy[i];
                 iyaw[i] = best_frenet_path->iyaw[i];
                 d[i] = best_frenet_path->d[i];
+                s[i] = best_frenet_path->s[i];
                 last += 1;
             }
 
