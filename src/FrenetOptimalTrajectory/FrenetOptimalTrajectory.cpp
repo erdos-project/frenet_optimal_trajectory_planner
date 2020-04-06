@@ -58,7 +58,7 @@ FrenetPath* FrenetOptimalTrajectory::getBestPath() {
 
 // Calculate frenet paths
 void FrenetOptimalTrajectory::calc_frenet_paths() {
-    double t, ti, tv, jp, js, ds;
+    double t, ti, tv, jd, jp, js, ds;
     FrenetPath* fp, *tfp;
 
     double di = -fot_hp->max_road_width_l;
@@ -68,6 +68,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
         // lateral motion planning
         while (ti <= fot_hp->maxt) {
             jp = 0;
+            jd = 0;
 
             fp = new FrenetPath(fot_hp);
             QuinticPolynomial lat_qp = QuinticPolynomial(
@@ -83,6 +84,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                 fp->d_dd.push_back(lat_qp.calc_second_derivative(t));
                 fp->d_ddd.push_back(lat_qp.calc_third_derivative(t));
                 jp += pow(lat_qp.calc_third_derivative(t), 2);
+                jd += pow(lat_qp.calc_point(t), 4);
                 t += fot_hp->dt;
             }
 
@@ -123,10 +125,12 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
 
                 // calculate costs
                 ds = pow(fot_ic->target_speed - tfp->s_d.back(), 2);
-                tfp->cd = fot_hp->kj * jp + fot_hp->kt * ti +
-                          fot_hp->kd * pow(tfp->d.back(), 2);
-                tfp->cv = fot_hp->kj * js + fot_hp->kt * ti +
-                          fot_hp->kd * ds;
+                tfp->cd = fot_hp->kj * jp + // lateral jerk
+                          fot_hp->kt * ti + // time cost
+                          fot_hp->kd * jd;  // deviation from lane center
+                tfp->cv = fot_hp->kj * js + // longitudinal jerk
+                          fot_hp->kt * ti + // time cost
+                          fot_hp->kd * ds;  // deviation from longitudinal goal
                 tfp->cf = fot_hp->klat * tfp->cd + fot_hp->klon * tfp->cv;
 
                 frenet_paths.push_back(tfp);
