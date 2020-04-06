@@ -29,6 +29,11 @@ public:
     vector<double> ds;         // speed
     vector<double> c;          // curvature
 
+    // Debug
+    vector<double> ix;
+    vector<double> iy;
+    vector<double> iyaw;
+
     // Cost attributes
     double cd = 0.0;                // lateral cost
     double cv = 0.0;                // longitudinal cost

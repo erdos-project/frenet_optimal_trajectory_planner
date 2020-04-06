@@ -11,17 +11,20 @@ FrenetPath::FrenetPath(FrenetHyperparameters *fot_hp_) {
 
 // Convert the frenet path to global path in terms of x, y, yaw, velocity
 bool FrenetPath::to_global_path(CubicSpline2D* csp) {
-    double ix, iy, iyaw, di, fx, fy, dx, dy;
+    double ix_, iy_, iyaw_, di, fx, fy, dx, dy;
     // calc global positions
     for (int i = 0; i < s.size(); i++) {
-        ix = csp->calc_x(s[i]);
-        iy = csp->calc_y(s[i]);
-        if (isnan(ix) || isnan(iy)) break;
+        ix_ = csp->calc_x(s[i]);
+        iy_ = csp->calc_y(s[i]);
+        if (isnan(ix_) || isnan(iy_)) break;
 
-        iyaw = csp->calc_yaw(s[i]);
+        iyaw_ = csp->calc_yaw(s[i]);
+        ix.push_back(ix_);
+        iy.push_back(iy_);
+        iyaw.push_back(iyaw_);
         di = d[i];
-        fx = ix + di * cos(iyaw + M_PI_2);
-        fy = iy + di * sin(iyaw + M_PI_2);
+        fx = ix_ + di * cos(iyaw_ + M_PI_2);
+        fy = iy_ + di * sin(iyaw_ + M_PI_2);
         x.push_back(fx);
         y.push_back(fy);
     }
