@@ -67,6 +67,8 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
         ti = fot_hp->mint;
         // lateral motion planning
         while (ti <= fot_hp->maxt) {
+            jp = 0;
+
             fp = new FrenetPath(fot_hp);
             QuinticPolynomial lat_qp = QuinticPolynomial(
                 fot_ic->c_d, fot_ic->c_d_d, fot_ic->c_d_dd, di, 0.0, 0.0, ti
@@ -80,13 +82,13 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                 fp->d_d.push_back(lat_qp.calc_first_derivative(t));
                 fp->d_dd.push_back(lat_qp.calc_second_derivative(t));
                 fp->d_ddd.push_back(lat_qp.calc_third_derivative(t));
+                jp += pow(lat_qp.calc_third_derivative(t), 2);
                 t += fot_hp->dt;
             }
 
             // velocity keeping
             tv = fot_ic->target_speed - fot_hp->d_t_s * fot_hp->n_s_sample;
             while (tv <= fot_ic->target_speed + fot_hp->d_t_s * fot_hp->n_s_sample) {
-                jp = 0;
                 js = 0;
 
                 // copy frenet path
@@ -106,7 +108,6 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                     tfp->s_d.push_back(lon_qp.calc_first_derivative(tp));
                     tfp->s_dd.push_back(lon_qp.calc_second_derivative(tp));
                     tfp->s_ddd.push_back(lon_qp.calc_third_derivative(tp));
-                    jp += pow(lat_qp.calc_third_derivative(tp), 2);
                     js += pow(lon_qp.calc_third_derivative(tp), 2);
                     // square jerk
                 }

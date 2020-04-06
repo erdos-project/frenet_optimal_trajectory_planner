@@ -44,8 +44,8 @@ extern "C" {
                 x_path[i] = best_frenet_path->x[i];
                 y_path[i] = best_frenet_path->y[i];
                 speeds[i] = best_frenet_path->s_d[i];
-                x_speeds[i] = cos(best_frenet_path->yaw[i]) * speeds[i];
-                y_speeds[i] = sin(best_frenet_path->yaw[i]) * speeds[i];
+                x_speeds[i] = best_frenet_path->d[i];
+                y_speeds[i] = best_frenet_path->d_d[i];
                 last += 1;
             }
 
