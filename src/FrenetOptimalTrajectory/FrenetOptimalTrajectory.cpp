@@ -84,7 +84,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                 fp->d_dd.push_back(lat_qp.calc_second_derivative(t));
                 fp->d_ddd.push_back(lat_qp.calc_third_derivative(t));
                 jp += pow(lat_qp.calc_third_derivative(t), 2);
-                jd += pow(abs(lat_qp.calc_point(t)) + 1.0, 4);
+                jd += pow(abs(lat_qp.calc_point(t)) + 1.0, 4); // add one in case lateral distance is < 1
                 t += fot_hp->dt;
             }
 
