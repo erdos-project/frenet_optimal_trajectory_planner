@@ -130,7 +130,7 @@ def run_fot(initial_conditions, hyperparameters):
     iy = np.zeros(100)
     iyaw = np.zeros(100)
     d = np.zeros(100)
-
+    s = np.zeros(100)
     params = np.zeros(5)
 
     # run the planner
@@ -144,6 +144,7 @@ def run_fot(initial_conditions, hyperparameters):
         iy.ctypes.data_as(_c_double_p),
         iyaw.ctypes.data_as(_c_double_p),
         d.ctypes.data_as(_c_double_p),
+        s.ctypes.data_as(_c_double_p),
         params.ctypes.data_as(_c_double_p)
     )
 
@@ -153,7 +154,7 @@ def run_fot(initial_conditions, hyperparameters):
         ind = np.where(np.isnan(result_x))[0][0]
 
     return result_x[:ind], result_y[:ind], speeds[:ind], \
-           ix[:ind], iy[:ind], iyaw[:ind], d[:ind], misc, success
+           ix[:ind], iy[:ind], iyaw[:ind], d[:ind], s[:ind], misc, success
 
 
 def to_frenet_initial_conditions(initial_conditions):
