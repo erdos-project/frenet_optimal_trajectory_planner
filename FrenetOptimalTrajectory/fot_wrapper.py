@@ -61,9 +61,13 @@ def _parse_hyperparameters(hp):
         hp["d_t_s"],
         hp["n_s_sample"],
         hp["obstacle_radius"],
+        hp["kd"],
+        hp["kv"],
+        hp["ka"],
         hp["kj"],
         hp["kt"],
         hp["kd"],
+        hp["ko"],
         hp["klat"],
         hp["klon"]
     )
@@ -94,9 +98,13 @@ def run_fot(initial_conditions, hyperparameters):
             d_t_s (float): target speed sampling discretization [m/s]
             n_s_sample (float): sampling number of target speed
             obstacle_radius (float): obstacle radius [m]
+            kd (float): positional deviation cost
+            kv (float): velocity cost
+            ka (float): acceleration cost
             kj (float): jerk cost
             kt (float): time cost
             kd (float): end state cost
+            ko (float): dist to obstacle cost
             klat (float): lateral cost
             klon (float): longitudinal cost
 
@@ -112,6 +120,7 @@ def run_fot(initial_conditions, hyperparameters):
         speeds_x (np.ndarray(float)): x speeds of fot, if it exists
         speeds_y (np.ndarray(float)): y speeds of fot, if it exists
         params (dict): next frenet coordinates, if they exist
+        costs (dict): costs of best frenet path, if it exists
         success (bool): whether a fot was found or not
     """
     # parse initial conditions and convert to frenet coordinates
@@ -138,7 +147,28 @@ def run_fot(initial_conditions, hyperparameters):
     s = np.array([fot_rv.s[i] for i in range(MAX_PATH_LENGTH)])
     speeds_x = np.array([fot_rv.speeds_x[i] for i in range(MAX_PATH_LENGTH)])
     speeds_y = np.array([fot_rv.speeds_y[i] for i in range(MAX_PATH_LENGTH)])
-    params = np.array([fot_rv.params[i] for i in range(5)])
+    params = {
+        "s": fot_rv.params[0],
+        "s_d": fot_rv.params[1],
+        "d": fot_rv.params[2],
+        "d_d": fot_rv.params[3],
+        "d_dd": fot_rv.params[4],
+    }
+    costs = {
+        "c_lateral_deviation": fot_rv.costs[0],
+        "c_lateral_velocity": fot_rv.costs[1],
+        "c_lateral_acceleration": fot_rv.costs[2],
+        "c_lateral_jerk": fot_rv.costs[3],
+        "c_lateral": fot_rv.costs[4],
+        "c_longitudinal_acceleration": fot_rv.costs[5],
+        "c_longitudinal_jerk": fot_rv.costs[6],
+        "c_time_taken": fot_rv.costs[7],
+        "c_end_speed_deviation": fot_rv.costs[8],
+        "c_longitudinal": fot_rv.costs[9],
+        "c_inv_dist_to_obstacles": fot_rv.costs[10],
+        "cf": fot_rv.costs[11],
+    }
+
     success = fot_rv.success
 
     # remove values after last calculated waypoint
@@ -148,7 +178,7 @@ def run_fot(initial_conditions, hyperparameters):
 
     return x_path[:ind], y_path[:ind], speeds[:ind], \
            ix[:ind], iy[:ind], iyaw[:ind], d[:ind], s[:ind], \
-           speeds_x[:ind], speeds_y[:ind], params, success
+           speeds_x[:ind], speeds_y[:ind], params, costs, success
 
 
 def to_frenet_initial_conditions(initial_conditions):

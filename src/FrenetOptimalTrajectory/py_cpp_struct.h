@@ -30,6 +30,7 @@ struct FrenetReturnValues {
     double speeds_x[MAX_PATH_LENGTH];
     double speeds_y[MAX_PATH_LENGTH];
     double params[MAX_PATH_LENGTH];
+    double costs[MAX_PATH_LENGTH];
 };
 
 struct FrenetHyperparameters {
@@ -45,9 +46,12 @@ struct FrenetHyperparameters {
     double d_t_s;
     double n_s_sample;
     double obstacle_radius;
+    double kd;
+    double kv;
+    double ka;
     double kj;
     double kt;
-    double kd;
+    double ko;
     double klat;
     double klon;
 };

@@ -78,6 +78,7 @@ bool FrenetPath::is_valid_path(const vector<tuple<double, double>>& obstacles) {
     }
 }
 
+// check path for collision with obstacles
 bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
     // no obstacles
     if (obstacles.empty()) {
@@ -85,7 +86,7 @@ bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
     }
 
     // iterate over all obstacles
-    for (tuple<double, double> obstacle : obstacles) {
+    for (auto obstacle : obstacles) {
         // calculate distance to each point in path
         for (int i = 0; i < x.size(); i++) {
             // exit if within OBSTACLE_RADIUS
@@ -99,4 +100,20 @@ bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
 
     // no collisions
     return false;
+}
+
+// calculate the sum of 1 / distance_to_obstacle
+double
+FrenetPath::inverse_distance_to_obstacles(
+    const vector<tuple<double, double>> &obstacles) {
+    double total_inverse_distance = 0.0;
+
+    for (auto obstacle : obstacles) {
+        for (int i = 0; i < x.size(); i++) {
+            double xd = x[i] - get<0>(obstacle);
+            double yd = y[i] - get<1>(obstacle);
+            total_inverse_distance += 1.0 / norm(xd, yd);
+        }
+    }
+    return total_inverse_distance;
 }

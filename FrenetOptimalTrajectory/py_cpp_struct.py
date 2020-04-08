@@ -34,6 +34,7 @@ class FrenetReturnValues(Structure):
         ("speeds_x", c_double * MAX_PATH_LENGTH),
         ("speeds_y", c_double * MAX_PATH_LENGTH),
         ("params", c_double * MAX_PATH_LENGTH),
+        ("costs", c_double * MAX_PATH_LENGTH)
     ]
 
 class FrenetHyperparameters(Structure):
@@ -50,9 +51,13 @@ class FrenetHyperparameters(Structure):
         ("d_t_s", c_double),
         ("n_s_sample", c_double),
         ("obstacle_radius", c_double),
+        ("kd", c_double),
+        ("kv", c_double),
+        ("ka", c_double),
         ("kj", c_double),
         ("kt", c_double),
         ("kd", c_double),
+        ("ko", c_double),
         ("klat", c_double),
         ("klon", c_double),
     ]

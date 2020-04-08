@@ -72,6 +72,20 @@ extern "C" {
             fot_rv->params[2] = best_frenet_path->d[1];
             fot_rv->params[3] = best_frenet_path->d_d[1];
             fot_rv->params[4] = best_frenet_path->d_dd[1];
+
+            // store costs for logging
+            fot_rv->costs[0] = best_frenet_path->c_lateral_deviation;
+            fot_rv->costs[1] = best_frenet_path->c_lateral_velocity;
+            fot_rv->costs[2] = best_frenet_path->c_lateral_acceleration;
+            fot_rv->costs[3] = best_frenet_path->c_lateral_jerk;
+            fot_rv->costs[4] = best_frenet_path->c_lateral;
+            fot_rv->costs[5] = best_frenet_path->c_longitudinal_acceleration;
+            fot_rv->costs[6] = best_frenet_path->c_longitudinal_jerk;
+            fot_rv->costs[7] = best_frenet_path->c_time_taken;
+            fot_rv->costs[8] = best_frenet_path->c_end_speed_deviation;
+            fot_rv->costs[9] = best_frenet_path->c_longitudinal;
+            fot_rv->costs[10] = best_frenet_path->c_inv_dist_to_obstacles;
+            fot_rv->costs[11] = best_frenet_path->cf;
         }
     }
 
