@@ -39,12 +39,12 @@ def main():
         "d_t_s": 0.5,
         "n_s_sample": 2.0,
         "obstacle_radius": 2.5,
-        "kd": 0.5,
+        "kd": 1.0,
         "kv": 0.1,
         "ka": 0.1,
         "kj": 0.1,
         "kt": 0.1,
-        "ko": 1.0,
+        "ko": 0.1,
         "klat": 1.0,
         "klon": 1.0
     }

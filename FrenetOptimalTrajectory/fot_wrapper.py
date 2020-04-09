@@ -66,7 +66,6 @@ def _parse_hyperparameters(hp):
         hp["ka"],
         hp["kj"],
         hp["kt"],
-        hp["kd"],
         hp["ko"],
         hp["klat"],
         hp["klon"]
@@ -103,7 +102,6 @@ def run_fot(initial_conditions, hyperparameters):
             ka (float): acceleration cost
             kj (float): jerk cost
             kt (float): time cost
-            kd (float): end state cost
             ko (float): dist to obstacle cost
             klat (float): lateral cost
             klon (float): longitudinal cost
