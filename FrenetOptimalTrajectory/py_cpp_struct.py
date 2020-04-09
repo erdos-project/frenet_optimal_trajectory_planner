@@ -2,6 +2,8 @@ from ctypes import c_double, c_int, POINTER, Structure, CDLL
 
 _c_double_p = POINTER(c_double)
 
+MAX_PATH_LENGTH = 100
+
 class FrenetInitialConditions(Structure):
     _fields_ = [
         ("s0", c_double),
@@ -16,6 +18,23 @@ class FrenetInitialConditions(Structure):
         ("ox", _c_double_p),
         ("oy", _c_double_p),
         ("no", c_int)
+    ]
+    
+class FrenetReturnValues(Structure):
+    _fields_ = [
+        ("success", c_int),
+        ("x_path", c_double * MAX_PATH_LENGTH),
+        ("y_path", c_double * MAX_PATH_LENGTH),
+        ("speeds", c_double * MAX_PATH_LENGTH),
+        ("ix", c_double * MAX_PATH_LENGTH),
+        ("iy", c_double * MAX_PATH_LENGTH),
+        ("iyaw", c_double * MAX_PATH_LENGTH),
+        ("d", c_double * MAX_PATH_LENGTH),
+        ("s", c_double * MAX_PATH_LENGTH),
+        ("speeds_x", c_double * MAX_PATH_LENGTH),
+        ("speeds_y", c_double * MAX_PATH_LENGTH),
+        ("params", c_double * MAX_PATH_LENGTH),
+        ("costs", c_double * MAX_PATH_LENGTH)
     ]
 
 class FrenetHyperparameters(Structure):
@@ -32,9 +51,12 @@ class FrenetHyperparameters(Structure):
         ("d_t_s", c_double),
         ("n_s_sample", c_double),
         ("obstacle_radius", c_double),
+        ("kd", c_double),
+        ("kv", c_double),
+        ("ka", c_double),
         ("kj", c_double),
         ("kt", c_double),
-        ("kd", c_double),
+        ("ko", c_double),
         ("klat", c_double),
         ("klon", c_double),
     ]

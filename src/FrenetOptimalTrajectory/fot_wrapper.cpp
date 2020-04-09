@@ -29,43 +29,64 @@ extern "C" {
     //      1 if successful, 0 if failure
     //      Also stores the Frenet Optimal Trajectory into x_path, y_path,
     //      speeds if it exists
-    int run_fot(
+    void run_fot(
             FrenetInitialConditions *fot_ic, FrenetHyperparameters *fot_hp,
-            double *x_path, double *y_path, double *speeds,
-            double *x_speeds, double *y_speeds, double *params
+            FrenetReturnValues *fot_rv
             ) {
         FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
         FrenetPath* best_frenet_path = fot.getBestPath();
-
-        int success = 0;
         if (best_frenet_path && !best_frenet_path->x.empty()){
             int last = 0;
             for (int i = 0; i < best_frenet_path->x.size(); i++) {
-                x_path[i] = best_frenet_path->x[i];
-                y_path[i] = best_frenet_path->y[i];
-                speeds[i] = best_frenet_path->s_d[i];
-                x_speeds[i] = cos(best_frenet_path->yaw[i]) * speeds[i];
-                y_speeds[i] = sin(best_frenet_path->yaw[i]) * speeds[i];
+                fot_rv->x_path[i] = best_frenet_path->x[i];
+                fot_rv->y_path[i] = best_frenet_path->y[i];
+                fot_rv->speeds[i] = best_frenet_path->s_d[i];
+                fot_rv->ix[i] = best_frenet_path->ix[i];
+                fot_rv->iy[i] = best_frenet_path->iy[i];
+                fot_rv->iyaw[i] = best_frenet_path->iyaw[i];
+                fot_rv->d[i] = best_frenet_path->d[i];
+                fot_rv->s[i] = best_frenet_path->s[i];
+                fot_rv->speeds_x[i] = cos(best_frenet_path->yaw[i]) *
+                    fot_rv->speeds[i];
+                fot_rv->speeds_y[i] = sin(best_frenet_path->yaw[i]) *
+                    fot_rv->speeds[i];
                 last += 1;
             }
 
             // indicate last point in the path
-            x_path[last] = NAN;
-            y_path[last] = NAN;
-            speeds[last] = NAN;
-            x_speeds[last] = NAN;
-            y_speeds[last] = NAN;
+            fot_rv->success = 1;
+            fot_rv->x_path[last] = NAN;
+            fot_rv->y_path[last] = NAN;
+            fot_rv->speeds[last] = NAN;
+            fot_rv->ix[last] = NAN;
+            fot_rv->iy[last] = NAN;
+            fot_rv->iyaw[last] = NAN;
+            fot_rv->d[last] = NAN;
+            fot_rv->s[last] = NAN;
+            fot_rv->speeds_x[last] = NAN;
+            fot_rv->speeds_y[last] = NAN;
 
             // store info for debug
-            params[0] = best_frenet_path->s[1];
-            params[1] = best_frenet_path->s_d[1];
-            params[2] = best_frenet_path->d[1];
-            params[3] = best_frenet_path->d_d[1];
-            params[4] = best_frenet_path->d_dd[1];
+            fot_rv->params[0] = best_frenet_path->s[1];
+            fot_rv->params[1] = best_frenet_path->s_d[1];
+            fot_rv->params[2] = best_frenet_path->d[1];
+            fot_rv->params[3] = best_frenet_path->d_d[1];
+            fot_rv->params[4] = best_frenet_path->d_dd[1];
 
-            success = 1;
+            // store costs for logging
+            fot_rv->costs[0] = best_frenet_path->c_lateral_deviation;
+            fot_rv->costs[1] = best_frenet_path->c_lateral_velocity;
+            fot_rv->costs[2] = best_frenet_path->c_lateral_acceleration;
+            fot_rv->costs[3] = best_frenet_path->c_lateral_jerk;
+            fot_rv->costs[4] = best_frenet_path->c_lateral;
+            fot_rv->costs[5] = best_frenet_path->c_longitudinal_acceleration;
+            fot_rv->costs[6] = best_frenet_path->c_longitudinal_jerk;
+            fot_rv->costs[7] = best_frenet_path->c_time_taken;
+            fot_rv->costs[8] = best_frenet_path->c_end_speed_deviation;
+            fot_rv->costs[9] = best_frenet_path->c_longitudinal;
+            fot_rv->costs[10] = best_frenet_path->c_inv_dist_to_obstacles;
+            fot_rv->costs[11] = best_frenet_path->cf;
         }
-        return success;
     }
 
     // Convert the initial conditions from cartesian space to frenet space

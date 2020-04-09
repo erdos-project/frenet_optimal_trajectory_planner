@@ -1,14 +1,16 @@
 import numpy as np
 import os
 
-from ctypes import c_double, c_int, POINTER, Structure, CDLL
+from ctypes import c_double, c_int, POINTER, Structure, CDLL, byref
 
 try:
-    from py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters
+    from py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
+        FrenetReturnValues, MAX_PATH_LENGTH
 except:
     from pylot.planning.frenet_optimal_trajectory\
         .frenet_optimal_trajectory_planner.FrenetOptimalTrajectory\
-        .py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters
+        .py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
+         FrenetReturnValues, MAX_PATH_LENGTH
 
 try:
     cdll = CDLL("build/libFrenetOptimalTrajectory.so")
@@ -25,14 +27,9 @@ _run_fot = cdll.run_fot
 _run_fot.argtypes = (
     POINTER(FrenetInitialConditions),
     POINTER(FrenetHyperparameters),
-    _c_double_p,
-    _c_double_p,
-    _c_double_p,
-    _c_double_p,
-    _c_double_p,
-    _c_double_p,
+    POINTER(FrenetReturnValues),
 )
-_run_fot.restype = c_int
+_run_fot.restype = None
 
 # func / return type declarations for C++ to_frenet_initial_conditions
 _to_frenet_initial_conditions = cdll.to_frenet_initial_conditions
@@ -64,9 +61,12 @@ def _parse_hyperparameters(hp):
         hp["d_t_s"],
         hp["n_s_sample"],
         hp["obstacle_radius"],
+        hp["kd"],
+        hp["kv"],
+        hp["ka"],
         hp["kj"],
         hp["kt"],
-        hp["kd"],
+        hp["ko"],
         hp["klat"],
         hp["klon"]
     )
@@ -97,9 +97,12 @@ def run_fot(initial_conditions, hyperparameters):
             d_t_s (float): target speed sampling discretization [m/s]
             n_s_sample (float): sampling number of target speed
             obstacle_radius (float): obstacle radius [m]
+            kd (float): positional deviation cost
+            kv (float): velocity cost
+            ka (float): acceleration cost
             kj (float): jerk cost
             kt (float): time cost
-            kd (float): end state cost
+            ko (float): dist to obstacle cost
             klat (float): lateral cost
             klon (float): longitudinal cost
 
@@ -107,9 +110,15 @@ def run_fot(initial_conditions, hyperparameters):
         result_x (np.ndarray(float)): x positions of fot, if it exists
         result_y (np.ndarray(float)): y positions of fot, if it exists
         speeds (np.ndarray(float)): speeds of fot, if it exists
+        ix (np.ndarray(float)): spline x of fot, if it exists
+        iy (np.ndarray(float)): spline y of fot, if it exists
+        iyaw (np.ndarray(float)): spline yaws of fot, if it exists
+        d (np.ndarray(float)): lateral offset of fot, if it exists
+        s (np.ndarray(float)): longitudinal offset of fot, if it exists
         speeds_x (np.ndarray(float)): x speeds of fot, if it exists
         speeds_y (np.ndarray(float)): y speeds of fot, if it exists
         params (dict): next frenet coordinates, if they exist
+        costs (dict): costs of best frenet path, if it exists
         success (bool): whether a fot was found or not
     """
     # parse initial conditions and convert to frenet coordinates
@@ -120,33 +129,54 @@ def run_fot(initial_conditions, hyperparameters):
     # parse hyper parameters
     fot_hp = _parse_hyperparameters(hyperparameters)
 
-    # create storage variables
-    result_x = np.zeros(100)
-    result_y = np.zeros(100)
-    speeds = np.zeros(100)
-    speeds_x = np.zeros(100)
-    speeds_y = np.zeros(100)
-    params = np.zeros(5)
+    # initialize return values
+    fot_rv = FrenetReturnValues(0)
 
     # run the planner
-    success = _run_fot(
-        fot_initial_conditions,
-        fot_hp,
-        result_x.ctypes.data_as(_c_double_p),
-        result_y.ctypes.data_as(_c_double_p),
-        speeds.ctypes.data_as(_c_double_p),
-        speeds_x.ctypes.data_as(_c_double_p),
-        speeds_y.ctypes.data_as(_c_double_p),
-        params.ctypes.data_as(_c_double_p)
-    )
+    _run_fot(fot_initial_conditions, fot_hp, fot_rv)
+
+    x_path = np.array([fot_rv.x_path[i] for i in range(MAX_PATH_LENGTH)])
+    y_path = np.array([fot_rv.y_path[i] for i in range(MAX_PATH_LENGTH)])
+    speeds = np.array([fot_rv.speeds[i] for i in range(MAX_PATH_LENGTH)])
+    ix = np.array([fot_rv.ix[i] for i in range(MAX_PATH_LENGTH)])
+    iy = np.array([fot_rv.iy[i] for i in range(MAX_PATH_LENGTH)])
+    iyaw = np.array([fot_rv.iyaw[i] for i in range(MAX_PATH_LENGTH)])
+    d = np.array([fot_rv.d[i] for i in range(MAX_PATH_LENGTH)])
+    s = np.array([fot_rv.s[i] for i in range(MAX_PATH_LENGTH)])
+    speeds_x = np.array([fot_rv.speeds_x[i] for i in range(MAX_PATH_LENGTH)])
+    speeds_y = np.array([fot_rv.speeds_y[i] for i in range(MAX_PATH_LENGTH)])
+    params = {
+        "s": fot_rv.params[0],
+        "s_d": fot_rv.params[1],
+        "d": fot_rv.params[2],
+        "d_d": fot_rv.params[3],
+        "d_dd": fot_rv.params[4],
+    }
+    costs = {
+        "c_lateral_deviation": fot_rv.costs[0],
+        "c_lateral_velocity": fot_rv.costs[1],
+        "c_lateral_acceleration": fot_rv.costs[2],
+        "c_lateral_jerk": fot_rv.costs[3],
+        "c_lateral": fot_rv.costs[4],
+        "c_longitudinal_acceleration": fot_rv.costs[5],
+        "c_longitudinal_jerk": fot_rv.costs[6],
+        "c_time_taken": fot_rv.costs[7],
+        "c_end_speed_deviation": fot_rv.costs[8],
+        "c_longitudinal": fot_rv.costs[9],
+        "c_inv_dist_to_obstacles": fot_rv.costs[10],
+        "cf": fot_rv.costs[11],
+    }
+
+    success = fot_rv.success
 
     # remove values after last calculated waypoint
     ind = -1
     if success:
-        ind = np.where(np.isnan(result_x))[0][0]
+        ind = np.where(np.isnan(x_path))[0][0]
 
-    return result_x[:ind], result_y[:ind], speeds[:ind], \
-           speeds_x[:ind], speeds_y[:ind], misc, success
+    return x_path[:ind], y_path[:ind], speeds[:ind], \
+           ix[:ind], iy[:ind], iyaw[:ind], d[:ind], s[:ind], \
+           speeds_x[:ind], speeds_y[:ind], params, costs, success
 
 
 def to_frenet_initial_conditions(initial_conditions):

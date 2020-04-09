@@ -11,17 +11,20 @@ FrenetPath::FrenetPath(FrenetHyperparameters *fot_hp_) {
 
 // Convert the frenet path to global path in terms of x, y, yaw, velocity
 bool FrenetPath::to_global_path(CubicSpline2D* csp) {
-    double ix, iy, iyaw, di, fx, fy, dx, dy;
+    double ix_, iy_, iyaw_, di, fx, fy, dx, dy;
     // calc global positions
     for (int i = 0; i < s.size(); i++) {
-        ix = csp->calc_x(s[i]);
-        iy = csp->calc_y(s[i]);
-        if (isnan(ix) || isnan(iy)) break;
+        ix_ = csp->calc_x(s[i]);
+        iy_ = csp->calc_y(s[i]);
+        if (isnan(ix_) || isnan(iy_)) break;
 
-        iyaw = csp->calc_yaw(s[i]);
+        iyaw_ = csp->calc_yaw(s[i]);
+        ix.push_back(ix_);
+        iy.push_back(iy_);
+        iyaw.push_back(iyaw_);
         di = d[i];
-        fx = ix + di * cos(iyaw + M_PI / 2.0);
-        fy = iy + di * sin(iyaw + M_PI / 2.0);
+        fx = ix_ + di * cos(iyaw_ + M_PI_2);
+        fy = iy_ + di * sin(iyaw_ + M_PI_2);
         x.push_back(fx);
         y.push_back(fy);
     }
@@ -75,6 +78,7 @@ bool FrenetPath::is_valid_path(const vector<tuple<double, double>>& obstacles) {
     }
 }
 
+// check path for collision with obstacles
 bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
     // no obstacles
     if (obstacles.empty()) {
@@ -82,7 +86,7 @@ bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
     }
 
     // iterate over all obstacles
-    for (tuple<double, double> obstacle : obstacles) {
+    for (auto obstacle : obstacles) {
         // calculate distance to each point in path
         for (int i = 0; i < x.size(); i++) {
             // exit if within OBSTACLE_RADIUS
@@ -96,4 +100,20 @@ bool FrenetPath::is_collision(const vector<tuple<double, double>>& obstacles) {
 
     // no collisions
     return false;
+}
+
+// calculate the sum of 1 / distance_to_obstacle
+double
+FrenetPath::inverse_distance_to_obstacles(
+    const vector<tuple<double, double>> &obstacles) {
+    double total_inverse_distance = 0.0;
+
+    for (auto obstacle : obstacles) {
+        for (int i = 0; i < x.size(); i++) {
+            double xd = x[i] - get<0>(obstacle);
+            double yd = y[i] - get<1>(obstacle);
+            total_inverse_distance += 1.0 / norm(xd, yd);
+        }
+    }
+    return total_inverse_distance;
 }

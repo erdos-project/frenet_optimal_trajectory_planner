@@ -6,20 +6,14 @@ import matplotlib.pyplot as plt
 
 def main():
     conds = {
-        's0': 12.6,
-        'target_speed': 10,
-        'wx': [132.67, 128.67, 124.67, 120.67, 116.67, 112.67, 108.67,
-               104.67, 101.43,  97.77,  94.84,  92.89,  92.4 ,  92.4 ,
-               92.4 ,  92.4 ,  92.4 ,  92.4 ,  92.4 ,  92.39,  92.39,
-               92.39,  92.39,  92.39,  92.39],
-        'wy': [195.14, 195.14, 195.14, 195.14, 195.14, 195.14, 195.14,
-               195.14, 195.14, 195.03, 193.88, 191.75, 188.72, 185.32,
-               181.32, 177.32, 173.32, 169.32, 165.32, 161.32, 157.32,
-               153.32, 149.32, 145.32, 141.84],
-        'obstacle_list': np.empty((0,2)),
-        'x': 120.1,
-        'y': 195.0,
-        'vx': -7.1,
+        's0': 0,
+        'target_speed': 20,
+        'wx': [0, 50, 150],
+        'wy': [0, 0, 0],
+        'obstacle_list': [[50, 0]],
+        'x': 0,
+        'y': 0,
+        'vx': 0,
         'vy': 0,
     }  # paste output from debug log
 
@@ -35,19 +29,22 @@ def main():
     hyperparameters = {
         "max_speed": 25.0,
         "max_accel": 6.0,
-        "max_curvature": 10.0,
-        "max_road_width_l": 5.0,
+        "max_curvature": 1.0,
+        "max_road_width_l": 6.0,
         "max_road_width_r": 1.0,
         "d_road_w": 0.25,
         "dt": 0.25,
-        "maxt": 6.0,
+        "maxt": 8.0,
         "mint": 2.0,
-        "d_t_s": 0.25,
+        "d_t_s": 0.5,
         "n_s_sample": 2.0,
-        "obstacle_radius": 3.0,
+        "obstacle_radius": 2.5,
+        "kd": 1.0,
+        "kv": 0.1,
+        "ka": 0.1,
         "kj": 0.1,
         "kt": 0.1,
-        "kd": 1.0,
+        "ko": 0.1,
         "klat": 1.0,
         "klon": 1.0
     }
@@ -59,14 +56,15 @@ def main():
 
     # simulation config
     show_animation = True
-    sim_loop = 40
+    sim_loop = 200
     area = 40
     total_time = 0
     for i in range(sim_loop):
         # run FOT and keep time
         print("Iteration: {}".format(i))
         start_time = time.time()
-        result_x, result_y, speeds, speeds_x, speeds_y, misc, success = \
+        result_x, result_y, speeds, ix, iy, iyaw, d, s, speeds_x, \
+            speeds_y, misc, costs, success = \
             fot_wrapper.run_fot(initial_conditions, hyperparameters)
         end_time = time.time() - start_time
         print("Time taken: {}".format(end_time))
@@ -75,14 +73,15 @@ def main():
         # reconstruct initial_conditions
         if success:
             initial_conditions['pos'] = np.array([result_x[1], result_y[1]])
-            initial_conditions['vel'] = np.array([speeds_x[1], speeds_y[1]])
-            initial_conditions['ps'] = misc[0]
+            initial_conditions['vel'] = np.array([speeds_x[1], -speeds_y[1]])
+            initial_conditions['ps'] = misc['s']
+            print(costs)
         else:
             print("Failed unexpectedly")
             break
 
         # break if near goal
-        if np.hypot(result_x[1] - wx[-1], result_y[1] - wy[-1]) <= 1.0:
+        if np.hypot(result_x[1] - wx[-1], result_y[1] - wy[-1]) <= 2.0:
             print("Goal")
             break
 
@@ -96,7 +95,7 @@ def main():
             plt.plot(wx, wy)
             if obs.shape[0] == 0:
                 obs = np.empty((0, 2))
-            plt.scatter(obs[:, 0], obs[:, 1], marker='o', s=(3*6)**2)
+            plt.scatter(obs[:, 0], obs[:, 1], marker='o', s=(2.5*6)**2)
             plt.plot(result_x[1:], result_y[1:], "-or")
             plt.plot(result_x[1], result_y[1], "vc")
             plt.xlim(result_x[1] - area, result_x[1] + area)
