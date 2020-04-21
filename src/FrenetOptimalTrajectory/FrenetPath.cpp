@@ -46,7 +46,13 @@ bool FrenetPath::to_global_path(CubicSpline2D* csp) {
 
     // calc curvature
     for (int i = 0; i < yaw.size() - 1; i++) {
-        c.push_back((yaw[i+1] - yaw[i]) / ds[i]);
+        double dyaw = yaw[i+1] - yaw[i];
+        if (dyaw > M_PI_2) {
+            dyaw -= M_PI;
+        } else if (dyaw < -M_PI_2) {
+            dyaw += M_PI;
+        }
+        c.push_back(dyaw / ds[i]);
     }
 
     return true;
