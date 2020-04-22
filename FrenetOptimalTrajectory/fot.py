@@ -115,6 +115,7 @@ def main():
                       np.linalg.norm(initial_conditions['vel']))[0:4]
             )
             plt.grid(True)
+            plt.savefig("{}.jpg".format(i))
             plt.pause(0.1)
 
     print("Finish")
