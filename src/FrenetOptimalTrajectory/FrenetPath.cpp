@@ -129,15 +129,9 @@ FrenetPath::inverse_distance_to_obstacles(
             double urx = obstacle->bbox.second.x();
             double ury = obstacle->bbox.second.y();
 
-            // check distance to corners
-            double d1 = norm(x[i] - llx, y[i] - lly);
-            double d2 = norm(x[i] - llx, y[i] - ury);
-            double d3 = norm(x[i] - urx, y[i] - lly);
-            double d4 = norm(x[i] - urx, y[i] - ury);
-
-            // find closest corner
-            double closest = min({d1, d2, d3, d4});
-            total_inverse_distance += 1.0 / closest;
+            double ox = (llx + urx) / 2.0;
+            double oy = (lly + ury) / 2.0;
+            total_inverse_distance += 1.0 / norm(ox, oy);
         }
     }
     return total_inverse_distance;
