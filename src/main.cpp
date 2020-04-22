@@ -15,8 +15,10 @@ int main() {
                    195.14, 195.14, 195.03, 193.88, 191.75, 188.72, 185.32,
                    181.32, 177.32, 173.32, 169.32, 165.32, 161.32, 157.32,
                    153.32, 149.32, 145.32, 141.84};
-    double ox[1] = {92.89};
-    double oy[1] = {191.75};
+    double o_llx[1] = {92.89};
+    double o_lly[1] = {191.75};
+    double o_urx[1] = {92.89};
+    double o_ury[1] = {191.75};
 
     // set up experiment
     FrenetInitialConditions fot_ic = {
@@ -29,8 +31,10 @@ int main() {
         wx,
         wy,
         25,
-        ox,
-        oy,
+        o_llx,
+        o_lly,
+        o_urx,
+        o_ury,
         1
     };
     FrenetHyperparameters fot_hp = {

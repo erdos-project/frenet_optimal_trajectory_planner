@@ -4,3 +4,4 @@ venv/
 .idea/
 cmake-build-debug/
 *.pyc
+*.jpg

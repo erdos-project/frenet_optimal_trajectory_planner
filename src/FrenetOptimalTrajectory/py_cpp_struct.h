@@ -12,8 +12,10 @@ struct FrenetInitialConditions {
     double *wx;
     double *wy;
     int nw;
-    double *ox;
-    double *oy;
+    double *o_llx;
+    double *o_lly;
+    double *o_urx;
+    double *o_ury;
     int no;
 };
 
@@ -45,7 +47,7 @@ struct FrenetHyperparameters {
     double mint;
     double d_t_s;
     double n_s_sample;
-    double obstacle_radius;
+    double obstacle_clearance;
     double kd;
     double kv;
     double ka;

@@ -37,7 +37,7 @@ extern "C" {
         FrenetPath* best_frenet_path = fot.getBestPath();
         if (best_frenet_path && !best_frenet_path->x.empty()){
             int last = 0;
-            for (int i = 0; i < best_frenet_path->x.size(); i++) {
+            for (size_t i = 0; i < best_frenet_path->x.size(); i++) {
                 fot_rv->x_path[i] = best_frenet_path->x[i];
                 fot_rv->y_path[i] = best_frenet_path->y[i];
                 fot_rv->speeds[i] = best_frenet_path->s_d[i];

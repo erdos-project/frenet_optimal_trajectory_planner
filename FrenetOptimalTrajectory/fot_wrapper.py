@@ -60,7 +60,7 @@ def _parse_hyperparameters(hp):
         hp["mint"],
         hp["d_t_s"],
         hp["n_s_sample"],
-        hp["obstacle_radius"],
+        hp["obstacle_clearance"],
         hp["kd"],
         hp["kv"],
         hp["ka"],
@@ -82,7 +82,8 @@ def run_fot(initial_conditions, hyperparameters):
             pos (np.ndarray([float, float])): initial position in global coord
             vel (np.ndarray([float, float])): initial velocity [m/s]
             wp (np.ndarray([float, float])): list of global waypoints
-            obs (np.ndarray([float, float])): list of global obstacle centers
+            obs (np.ndarray([float, float, float, float])): list of obstacles
+                as: [lower left x, lower left y, upper right x, upper right y]
 
         hyperparameters (dict): a dict of optional hyperparameters
             max_speed (float): maximum speed [m/s]
@@ -96,7 +97,7 @@ def run_fot(initial_conditions, hyperparameters):
             mint (float): min prediction horizon [s]
             d_t_s (float): target speed sampling discretization [m/s]
             n_s_sample (float): sampling number of target speed
-            obstacle_radius (float): obstacle radius [m]
+            obstacle_clearance (float): obstacle radius [m]
             kd (float): positional deviation cost
             kv (float): velocity cost
             ka (float): acceleration cost
@@ -189,8 +190,8 @@ def to_frenet_initial_conditions(initial_conditions):
             pos (np.ndarray([float, float])): initial position in global coord
             vel (np.ndarray([float, float])): initial velocity [m/s]
             wp (np.ndarray([float, float])): list of global waypoints
-            obs (np.ndarray([float, float])): list of global obstacle centers
-
+            obs (np.ndarray([float, float, float, float])): list of obstacles
+                as: [lower left x, lower left y, upper right x, upper right y]
     Returns:
         FrenetInitialConditions, dictionary for debugging
     """
@@ -202,15 +203,17 @@ def to_frenet_initial_conditions(initial_conditions):
     obs = initial_conditions['obs']
     target_speed = initial_conditions['target_speed']
     if obs.shape[0] == 0:
-        obs = np.empty((0, 2))
+        obs = np.empty((0, 4))
     x = pos[0].item()
     y = pos[1].item()
     vx = vel[0].item()
     vy = vel[1].item()
     wx = wp[:, 0].astype(np.float64)
     wy = wp[:, 1].astype(np.float64)
-    ox = obs[:, 0].astype(np.float64)
-    oy = obs[:, 1].astype(np.float64)
+    o_llx = np.copy(obs[:, 0]).astype(np.float64)
+    o_lly = np.copy(obs[:, 1]).astype(np.float64)
+    o_urx = np.copy(obs[:, 2]).astype(np.float64)
+    o_ury = np.copy(obs[:, 3]).astype(np.float64)
     forward_speed = np.hypot(vx, vy).item()
 
     # construct return array and convert initial conditions
@@ -239,7 +242,9 @@ def to_frenet_initial_conditions(initial_conditions):
         wx.ctypes.data_as(_c_double_p), # waypoints x position
         wy.ctypes.data_as(_c_double_p), # waypoints y position
         len(wx),
-        ox.ctypes.data_as(_c_double_p), # obstacles x position
-        oy.ctypes.data_as(_c_double_p), # obstacles y position
-        len(ox),
+        o_llx.ctypes.data_as(_c_double_p), # obstacles lower left x
+        o_lly.ctypes.data_as(_c_double_p), # obstacles lower left y
+        o_urx.ctypes.data_as(_c_double_p), # obstacles upper right x
+        o_ury.ctypes.data_as(_c_double_p), # obstacles upper right y
+        len(o_llx),
     ), misc

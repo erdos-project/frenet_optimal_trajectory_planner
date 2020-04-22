@@ -17,8 +17,14 @@
 #include "FrenetPath.h"
 #include "py_cpp_struct.h"
 #include "CubicSpline2D.h"
+#include "Obstacle.h"
 
 #include <vector>
+#include <cmath>
+#include <eigen3/Eigen/Dense>
+
+using namespace std;
+using namespace Eigen;
 
 class FrenetOptimalTrajectory {
 public:
@@ -28,14 +34,16 @@ public:
     );
     ~FrenetOptimalTrajectory();
     FrenetPath* getBestPath();
+    void setObstacles();
+    void addObstacle(Vector2f first_point, Vector2f second_point);
 private:
     FrenetInitialConditions *fot_ic;
     FrenetHyperparameters *fot_hp;
     FrenetPath *best_frenet_path;
     CubicSpline2D *csp;
-    std::vector<std::tuple<double, double>> obstacles;
-    std::vector<double> x, y;
-    std::vector<FrenetPath *> frenet_paths;
+    vector<Obstacle *> obstacles;
+    vector<double> x, y;
+    vector<FrenetPath *> frenet_paths;
     void calc_frenet_paths();
 };
 

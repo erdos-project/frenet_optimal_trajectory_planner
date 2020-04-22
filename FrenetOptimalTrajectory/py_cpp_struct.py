@@ -15,8 +15,10 @@ class FrenetInitialConditions(Structure):
         ("wx", _c_double_p),
         ("wy", _c_double_p),
         ("nw", c_int),
-        ("ox", _c_double_p),
-        ("oy", _c_double_p),
+        ("o_llx", _c_double_p),
+        ("o_lly", _c_double_p),
+        ("o_urx", _c_double_p),
+        ("o_ury", _c_double_p),
         ("no", c_int)
     ]
     
@@ -50,7 +52,7 @@ class FrenetHyperparameters(Structure):
         ("mint", c_double),
         ("d_t_s", c_double),
         ("n_s_sample", c_double),
-        ("obstacle_radius", c_double),
+        ("obstacle_clearance", c_double),
         ("kd", c_double),
         ("kv", c_double),
         ("ka", c_double),

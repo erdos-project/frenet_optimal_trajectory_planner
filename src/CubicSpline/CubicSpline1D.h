@@ -8,7 +8,7 @@
 // For technical details see: http://mathworld.wolfram.com/CubicSpline.html
 class CubicSpline1D {
 public:
-    int nx{};
+    int nx;
     CubicSpline1D();
     CubicSpline1D(const std::vector<double>& v1, const std::vector<double>& v2);
     double calc_der0(double t);

@@ -3,10 +3,6 @@
 #include "QuinticPolynomial.h"
 #include "utils.h"
 
-#include <cmath>
-
-using namespace std;
-
 // Compute the frenet optimal trajectory
 FrenetOptimalTrajectory::FrenetOptimalTrajectory(
         FrenetInitialConditions *fot_ic_, FrenetHyperparameters *fot_hp_) {
@@ -15,10 +11,7 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
     fot_hp = fot_hp_;
     x.assign(fot_ic->wx, fot_ic->wx + fot_ic->nw);
     y.assign(fot_ic->wy, fot_ic->wy + fot_ic->nw);
-    for (int i = 0; i < fot_ic->no; i++) {
-        tuple<double, double> ob (fot_ic->ox[i], fot_ic->oy[i]);
-        obstacles.push_back(ob);
-    }
+    setObstacles();
 
     // make sure best_frenet_path is initialized
     best_frenet_path = nullptr;
@@ -49,6 +42,10 @@ FrenetOptimalTrajectory::~FrenetOptimalTrajectory() {
     for (FrenetPath* fp : frenet_paths) {
         delete fp;
     }
+
+    for (Obstacle* ob : obstacles) {
+        delete ob;
+    }
 }
 
 // Return the best path
@@ -60,7 +57,7 @@ FrenetPath* FrenetOptimalTrajectory::getBestPath() {
 void FrenetOptimalTrajectory::calc_frenet_paths() {
     double t, ti, tv;
     double lateral_deviation, lateral_velocity, lateral_acceleration, lateral_jerk;
-    double longitudinal_acceleration, longitudinal_jerk, ds;
+    double longitudinal_acceleration, longitudinal_jerk;
     FrenetPath* fp, *tfp;
 
     double di = -fot_hp->max_road_width_l;
@@ -169,5 +166,26 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
         }
         di += fot_hp->d_road_w;
     }
+}
+
+void FrenetOptimalTrajectory::setObstacles() {
+    // Construct obstacles
+    vector<double> llx(fot_ic->o_llx, fot_ic->o_llx + fot_ic->no);
+    vector<double> lly(fot_ic->o_lly, fot_ic->o_lly + fot_ic->no);
+    vector<double> urx(fot_ic->o_urx, fot_ic->o_urx + fot_ic->no);
+    vector<double> ury(fot_ic->o_ury, fot_ic->o_ury + fot_ic->no);
+
+    for (int i = 0; i < fot_ic->no; i++) {
+        addObstacle(
+            Vector2f(llx[i], lly[i]),
+            Vector2f(urx[i], ury[i])
+        );
+    }
+}
+
+void FrenetOptimalTrajectory::addObstacle(Vector2f first_point, Vector2f second_point) {
+    obstacles.push_back(new Obstacle(std::move(first_point),
+                                     std::move(second_point),
+                                     fot_hp->obstacle_clearance));
 }
 
