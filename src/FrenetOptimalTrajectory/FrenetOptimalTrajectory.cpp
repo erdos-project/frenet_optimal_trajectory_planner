@@ -186,6 +186,6 @@ void FrenetOptimalTrajectory::setObstacles() {
 void FrenetOptimalTrajectory::addObstacle(Vector2f first_point, Vector2f second_point) {
     obstacles.push_back(new Obstacle(std::move(first_point),
                                      std::move(second_point),
-                                     fot_hp->obstacle_radius));
+                                     fot_hp->obstacle_clearance));
 }
 

@@ -47,7 +47,7 @@ struct FrenetHyperparameters {
     double mint;
     double d_t_s;
     double n_s_sample;
-    double obstacle_radius;
+    double obstacle_clearance;
     double kd;
     double kv;
     double ka;

@@ -60,7 +60,7 @@ def _parse_hyperparameters(hp):
         hp["mint"],
         hp["d_t_s"],
         hp["n_s_sample"],
-        hp["obstacle_radius"],
+        hp["obstacle_clearance"],
         hp["kd"],
         hp["kv"],
         hp["ka"],
@@ -97,7 +97,7 @@ def run_fot(initial_conditions, hyperparameters):
             mint (float): min prediction horizon [s]
             d_t_s (float): target speed sampling discretization [m/s]
             n_s_sample (float): sampling number of target speed
-            obstacle_radius (float): obstacle radius [m]
+            obstacle_clearance (float): obstacle radius [m]
             kd (float): positional deviation cost
             kv (float): velocity cost
             ka (float): acceleration cost

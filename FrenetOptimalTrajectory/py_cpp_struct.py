@@ -52,7 +52,7 @@ class FrenetHyperparameters(Structure):
         ("mint", c_double),
         ("d_t_s", c_double),
         ("n_s_sample", c_double),
-        ("obstacle_radius", c_double),
+        ("obstacle_clearance", c_double),
         ("kd", c_double),
         ("kv", c_double),
         ("ka", c_double),

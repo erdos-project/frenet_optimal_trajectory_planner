@@ -39,7 +39,7 @@ def main():
         "mint": 2.0,
         "d_t_s": 0.5,
         "n_s_sample": 2.0,
-        "obstacle_radius": 1.0,
+        "obstacle_clearance": 0.5,
         "kd": 1.0,
         "kv": 0.1,
         "ka": 0.1,
