@@ -2,6 +2,7 @@ import fot_wrapper
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patch
 
 
 def main():
@@ -10,7 +11,7 @@ def main():
         'target_speed': 20,
         'wx': [0, 50, 150],
         'wy': [0, 0, 0],
-        'obstacle_list': [[50, 0]],
+        'obstacle_list': [[48, -2, 52, 2], [98, -2, 102, 2]],
         'x': 0,
         'y': 0,
         'vx': 0,
@@ -28,8 +29,8 @@ def main():
 
     hyperparameters = {
         "max_speed": 25.0,
-        "max_accel": 6.0,
-        "max_curvature": 1.0,
+        "max_accel": 10.0,
+        "max_curvature": 3.0,
         "max_road_width_l": 6.0,
         "max_road_width_r": 1.0,
         "d_road_w": 0.25,
@@ -38,7 +39,7 @@ def main():
         "mint": 2.0,
         "d_t_s": 0.5,
         "n_s_sample": 2.0,
-        "obstacle_radius": 2.5,
+        "obstacle_radius": 1.0,
         "kd": 1.0,
         "kv": 0.1,
         "ka": 0.1,
@@ -73,7 +74,7 @@ def main():
         # reconstruct initial_conditions
         if success:
             initial_conditions['pos'] = np.array([result_x[1], result_y[1]])
-            initial_conditions['vel'] = np.array([speeds_x[1], -speeds_y[1]])
+            initial_conditions['vel'] = np.array([speeds_x[1], speeds_y[1]])
             initial_conditions['ps'] = misc['s']
             print(costs)
         else:
@@ -81,7 +82,7 @@ def main():
             break
 
         # break if near goal
-        if np.hypot(result_x[1] - wx[-1], result_y[1] - wy[-1]) <= 2.0:
+        if np.hypot(result_x[1] - wx[-1], result_y[1] - wy[-1]) <= 3.0:
             print("Goal")
             break
 
@@ -95,7 +96,12 @@ def main():
             plt.plot(wx, wy)
             if obs.shape[0] == 0:
                 obs = np.empty((0, 2))
-            plt.scatter(obs[:, 0], obs[:, 1], marker='o', s=(2.5*6)**2)
+            ax = plt.gca()
+            for o in obs:
+                rect = patch.Rectangle((o[0], o[1]),
+                                       o[2] - o[0],
+                                       o[3] - o[1])
+                ax.add_patch(rect)
             plt.plot(result_x[1:], result_y[1:], "-or")
             plt.plot(result_x[1], result_y[1], "vc")
             plt.xlim(result_x[1] - area, result_x[1] + area)

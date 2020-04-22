@@ -3,11 +3,15 @@
 
 #include "py_cpp_struct.h"
 #include "CubicSpline2D.h"
+#include "Obstacle.h"
+#include "Car.h"
 
+#include <eigen3/Eigen/Dense>
 #include <vector>
 #include <tuple>
 
 using namespace std;
+using namespace Eigen;
 
 class FrenetPath {
 public:
@@ -57,10 +61,10 @@ public:
 
     FrenetPath(FrenetHyperparameters *fot_hp_);
     bool to_global_path(CubicSpline2D* csp);
-    bool is_valid_path(const vector<tuple<double, double>>& obstacles);
-    bool is_collision(const vector<tuple<double, double>>& obstacles);
+    bool is_valid_path(const vector<Obstacle *> obstacles);
+    bool is_collision(const vector<Obstacle *> obstacles);
     double inverse_distance_to_obstacles(
-        const vector<tuple<double, double>>& obstacles);
+        const vector<Obstacle *> obstacles);
 
 private:
     // Hyperparameters
