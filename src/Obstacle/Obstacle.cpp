@@ -58,14 +58,10 @@ bool Obstacle::isSegmentInObstacle(Vector2f &p1, Vector2f &p2)
     QLineF::IntersectType x3 = line_segment.intersect(lseg3, &intersect_pt);
     QLineF::IntersectType x4 = line_segment.intersect(lseg4, &intersect_pt);
     // check for bounded intersection. IntersectType for bounded intersection is 1.
-    if (x1 == 1 || x2 == 1 || x3 == 1 || x4 == 1)
+    if (x1 == 1 || x2 == 1 || x3 == 1 || x4 == 1) {
         return true;
-    // check for containment
-    if (bbox.first.x() < p1.x() &&
-        p1.x() < bbox.second.x() &&
-        bbox.first.y() < p1.y() &&
-        p1.x() < bbox.second.y())
-        return true;
+    }
+
     return false;
 }
 

@@ -107,7 +107,9 @@ bool FrenetPath::is_collision(const vector<Obstacle *> obstacles) {
                 p1.y() = car_outline[i][1];
                 p2.x() = car_outline[(i+1) % car_outline.size()][0];
                 p2.y() = car_outline[(i+1) % car_outline.size()][1];
-                if (obstacle->isSegmentInObstacle(p1, p2)) return true;
+                if (obstacle->isSegmentInObstacle(p1, p2)) {
+                    return true;
+                }
             }
         }
     }
