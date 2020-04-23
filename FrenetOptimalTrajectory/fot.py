@@ -9,25 +9,22 @@ def main():
     conds = {
         's0': 0,
         'target_speed': 20,
-        'wx': [0, 50, 200],
-        'wy': [0, 0, 0],
-        'obstacle_list': [[48, -2, 52, 2],
-                          [98, -4, 102, 2],
-                          [98, 6, 102, 10],
-                          [128, 2, 132, 6]],
-        'x': 0,
-        'y': 0,
-        'vx': 0,
-        'vy': 0,
-    }  # paste output from debug log
+        'wp': [[0, 0], [50, 0], [150, 0]],
+        'obs': [[48, -2, 52, 2],
+                [98, -4, 102, 2],
+                [98, 6, 102, 10],
+                [128, 2, 132, 6]],
+        'pos': [0, 0],
+        'vel': [0, 0],
+    } # paste output from debug log
 
     initial_conditions = {
         'ps': conds['s0'],
         'target_speed': conds['target_speed'],
-        'pos': np.array([conds['x'], conds['y']]),
-        'vel': np.array([conds['vx'], conds['vy']]),
-        'wp': np.array([conds['wx'], conds['wy']]).T,
-        'obs': np.array(conds['obstacle_list'])
+        'pos': np.array(conds['pos']),
+        'vel': np.array(conds['vel']),
+        'wp': np.array(conds['wp']),
+        'obs': np.array(conds['obs'])
     }
 
     hyperparameters = {
@@ -52,11 +49,10 @@ def main():
         "klat": 1.0,
         "klon": 1.0
     }
-
     # static elements of planner
-    wx = np.array(conds['wx'])
-    wy = np.array(conds['wy'])
-    obs = np.array(conds['obstacle_list'])
+    wx = initial_conditions['wp'][:, 0]
+    wy = initial_conditions['wp'][:, 1]
+    obs = np.array(conds['obs'])
 
     # simulation config
     show_animation = True
@@ -98,7 +94,7 @@ def main():
             )
             plt.plot(wx, wy)
             if obs.shape[0] == 0:
-                obs = np.empty((0, 2))
+                obs = np.empty((0, 4))
             ax = plt.gca()
             for o in obs:
                 rect = patch.Rectangle((o[0], o[1]),
