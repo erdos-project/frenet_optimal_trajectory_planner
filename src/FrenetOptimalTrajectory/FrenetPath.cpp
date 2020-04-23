@@ -137,7 +137,7 @@ FrenetPath::inverse_distance_to_obstacles(
 
             double ox = (llx + urx) / 2.0;
             double oy = (lly + ury) / 2.0;
-            total_inverse_distance += 1.0 / norm(ox, oy);
+            total_inverse_distance += 1.0 / norm(ox - x[i], oy - y[i]);
         }
     }
     return total_inverse_distance;
