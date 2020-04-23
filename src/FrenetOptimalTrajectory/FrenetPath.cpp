@@ -110,6 +110,10 @@ bool FrenetPath::is_collision(const vector<Obstacle *> obstacles) {
                 if (obstacle->isSegmentInObstacle(p1, p2)) {
                     return true;
                 }
+                // TODO (@fangedward): containment check is not implemented
+                // this is necessary when there is a obstacle that can fully
+                // contain the ego vehicle, otherwise any point contained will
+                // form a line segment that intersects the obstacle
             }
         }
     }
