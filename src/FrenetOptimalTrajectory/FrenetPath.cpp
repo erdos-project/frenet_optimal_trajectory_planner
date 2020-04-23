@@ -135,9 +135,13 @@ FrenetPath::inverse_distance_to_obstacles(
             double urx = obstacle->bbox.second.x();
             double ury = obstacle->bbox.second.y();
 
-            double ox = (llx + urx) / 2.0;
-            double oy = (lly + ury) / 2.0;
-            total_inverse_distance += 1.0 / norm(ox - x[i], oy - y[i]);
+            double d1 = norm(llx - x[i], lly - y[i]);
+            double d2 = norm(llx - x[i], ury - y[i]);
+            double d3 = norm(urx - x[i], ury - y[i]);
+            double d4 = norm(urx - x[i], lly - y[i]);
+
+            double closest = min({d1, d2, d3, d4});
+            total_inverse_distance += 1.0 / closest;
         }
     }
     return total_inverse_distance;
