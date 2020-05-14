@@ -3,6 +3,8 @@
 
 #include <algorithm>
 
+const float COLLISION_CHECK_THRESHOLD = 6; // don't check unless within 6m
+
 FrenetPath::FrenetPath(FrenetHyperparameters *fot_hp_) {
     fot_hp = fot_hp_;
 }
@@ -96,24 +98,39 @@ bool FrenetPath::is_collision(const vector<Obstacle *> obstacles) {
     // iterate over all obstacles
     for (auto obstacle : obstacles) {
         for (size_t i = 0; i < x.size(); i++) {
-            double xp = x[i];
-            double yp = y[i];
-            double yawp = yaw[i];
-            pose.assign({xp, yp, yawp});
-            car.setPose(pose);
-            car_outline = car.getOutline();
-            for (size_t i = 0; i < car_outline.size(); i++) {
-                p1.x() = car_outline[i][0];
-                p1.y() = car_outline[i][1];
-                p2.x() = car_outline[(i+1) % car_outline.size()][0];
-                p2.y() = car_outline[(i+1) % car_outline.size()][1];
-                if (obstacle->isSegmentInObstacle(p1, p2)) {
-                    return true;
+            double llx = obstacle->bbox.first.x();
+            double lly = obstacle->bbox.first.y();
+            double urx = obstacle->bbox.second.x();
+            double ury = obstacle->bbox.second.y();
+
+            double d1 = norm(llx - x[i], lly - y[i]);
+            double d2 = norm(llx - x[i], ury - y[i]);
+            double d3 = norm(urx - x[i], ury - y[i]);
+            double d4 = norm(urx - x[i], lly - y[i]);
+
+            double closest = min({d1, d2, d3, d4});
+            // only check for collision if one corner of bounding box is
+            // within COLLISION_CHECK_THRESHOLD of waypoint
+            if (closest <= COLLISION_CHECK_THRESHOLD) {
+                double xp = x[i];
+                double yp = y[i];
+                double yawp = yaw[i];
+                pose.assign({xp, yp, yawp});
+                car.setPose(pose);
+                car_outline = car.getOutline();
+                for (size_t i = 0; i < car_outline.size(); i++) {
+                    p1.x() = car_outline[i][0];
+                    p1.y() = car_outline[i][1];
+                    p2.x() = car_outline[(i+1) % car_outline.size()][0];
+                    p2.y() = car_outline[(i+1) % car_outline.size()][1];
+                    if (obstacle->isSegmentInObstacle(p1, p2)) {
+                        return true;
+                    }
+                    // TODO (@fangedward): containment check is not implemented
+                    // this is necessary when there is a obstacle that can fully
+                    // contain the ego vehicle, otherwise any point contained will
+                    // form a line segment that intersects the obstacle
                 }
-                // TODO (@fangedward): containment check is not implemented
-                // this is necessary when there is a obstacle that can fully
-                // contain the ego vehicle, otherwise any point contained will
-                // form a line segment that intersects the obstacle
             }
         }
     }
@@ -135,9 +152,13 @@ FrenetPath::inverse_distance_to_obstacles(
             double urx = obstacle->bbox.second.x();
             double ury = obstacle->bbox.second.y();
 
-            double ox = (llx + urx) / 2.0;
-            double oy = (lly + ury) / 2.0;
-            total_inverse_distance += 1.0 / norm(ox - x[i], oy - y[i]);
+            double d1 = norm(llx - x[i], lly - y[i]);
+            double d2 = norm(llx - x[i], ury - y[i]);
+            double d3 = norm(urx - x[i], ury - y[i]);
+            double d4 = norm(urx - x[i], lly - y[i]);
+
+            double closest = min({d1, d2, d3, d4});
+            total_inverse_distance += 1.0 / closest;
         }
     }
     return total_inverse_distance;
