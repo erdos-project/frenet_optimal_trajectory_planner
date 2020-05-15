@@ -52,8 +52,8 @@ bool FrenetPath::to_global_path(CubicSpline2D* csp) {
         } else if (dyaw < -M_PI_2) {
             dyaw += M_PI;
         }
-        // c.push_back(dyaw / ds[i]);
-        c.push_back(dyaw / fot_hp->dt);
+        c.push_back(dyaw / ds[i]);
+        //c.push_back(dyaw / fot_hp->dt);
     }
 
     return true;
