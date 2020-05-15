@@ -1,11 +1,17 @@
+#include <iostream>
+#include <chrono>
+
 #include "FrenetOptimalTrajectory.h"
 #include "QuarticPolynomial.h"
 #include "QuinticPolynomial.h"
 #include "utils.h"
 
+using namespace std;
+
 // Compute the frenet optimal trajectory
 FrenetOptimalTrajectory::FrenetOptimalTrajectory(
         FrenetInitialConditions *fot_ic_, FrenetHyperparameters *fot_hp_) {
+    auto start = chrono::high_resolution_clock::now();
     // parse the waypoints and obstacles
     fot_ic = fot_ic_;
     fot_hp = fot_hp_;
@@ -35,6 +41,10 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
             best_frenet_path = fp;
         }
     }
+    auto end = chrono::high_resolution_clock::now();
+    double run_time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+    run_time *= 1e-6;
+    //cout << "Planning runtime " << run_time << "\n";
 }
 
 FrenetOptimalTrajectory::~FrenetOptimalTrajectory() {
@@ -59,7 +69,9 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
     double lateral_deviation, lateral_velocity, lateral_acceleration, lateral_jerk;
     double longitudinal_acceleration, longitudinal_jerk;
     FrenetPath* fp, *tfp;
-
+    int num_paths = 0;
+    int num_viable_paths = 0;
+    double valid_path_time = 0;
     double di = -fot_hp->max_road_width_l;
     // generate path to each offset goal
     while (di <= fot_hp->max_road_width_r) {
@@ -118,9 +130,22 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
                     longitudinal_jerk += abs(lon_qp.calc_third_derivative(tp));
                 }
 
+                num_paths++;
                 // delete if failure or invalid path
                 bool success = tfp->to_global_path(csp);
-                if (!success || !tfp->is_valid_path(obstacles)) {
+                num_viable_paths++;
+                if (!success) {
+                    // deallocate memory and continue
+                    delete tfp;
+                    tv += fot_hp->d_t_s;
+                    continue;
+                }
+
+                //auto start = chrono::high_resolution_clock::now();
+                bool valid_path = tfp->is_valid_path(obstacles);
+                //auto end = chrono::high_resolution_clock::now();
+                //valid_path_time += chrono::duration_cast<chrono::nanoseconds>(end - start).count();
+                if (!valid_path) {
                     // deallocate memory and continue
                     delete tfp;
                     tv += fot_hp->d_t_s;
@@ -166,6 +191,8 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
         }
         di += fot_hp->d_road_w;
     }
+    valid_path_time *= 1e-6;
+    //cout << "Found " << frenet_paths.size() << " valid paths out of " << num_paths << " paths; Valid path time " << valid_path_time << "\n";
 }
 
 void FrenetOptimalTrajectory::setObstacles() {
@@ -188,4 +215,3 @@ void FrenetOptimalTrajectory::addObstacle(Vector2f first_point, Vector2f second_
                                      std::move(second_point),
                                      fot_hp->obstacle_clearance));
 }
-

@@ -52,7 +52,8 @@ bool FrenetPath::to_global_path(CubicSpline2D* csp) {
         } else if (dyaw < -M_PI_2) {
             dyaw += M_PI;
         }
-        c.push_back(dyaw / ds[i]);
+        // c.push_back(dyaw / ds[i]);
+        c.push_back(dyaw / fot_hp->dt);
     }
 
     return true;
@@ -97,12 +98,11 @@ bool FrenetPath::is_collision(const vector<Obstacle *> obstacles) {
     vector<Point> car_outline;
     // iterate over all obstacles
     for (auto obstacle : obstacles) {
+        double llx = obstacle->bbox.first.x();
+        double lly = obstacle->bbox.first.y();
+        double urx = obstacle->bbox.second.x();
+        double ury = obstacle->bbox.second.y();
         for (size_t i = 0; i < x.size(); i++) {
-            double llx = obstacle->bbox.first.x();
-            double lly = obstacle->bbox.first.y();
-            double urx = obstacle->bbox.second.x();
-            double ury = obstacle->bbox.second.y();
-
             double d1 = norm(llx - x[i], lly - y[i]);
             double d2 = norm(llx - x[i], ury - y[i]);
             double d3 = norm(urx - x[i], ury - y[i]);
@@ -146,12 +146,12 @@ FrenetPath::inverse_distance_to_obstacles(
     double total_inverse_distance = 0.0;
 
     for (auto obstacle : obstacles) {
-        for (size_t i = 0; i < x.size(); i++) {
-            double llx = obstacle->bbox.first.x();
-            double lly = obstacle->bbox.first.y();
-            double urx = obstacle->bbox.second.x();
-            double ury = obstacle->bbox.second.y();
+        double llx = obstacle->bbox.first.x();
+        double lly = obstacle->bbox.first.y();
+        double urx = obstacle->bbox.second.x();
+        double ury = obstacle->bbox.second.y();
 
+        for (size_t i = 0; i < x.size(); i++) {
             double d1 = norm(llx - x[i], lly - y[i]);
             double d2 = norm(llx - x[i], ury - y[i]);
             double d3 = norm(urx - x[i], ury - y[i]);
