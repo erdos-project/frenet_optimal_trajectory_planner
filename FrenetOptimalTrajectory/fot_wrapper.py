@@ -17,8 +17,7 @@ try:
 except:
     cdll = CDLL(
         "{}/pylot/planning/frenet_optimal_trajectory/frenet_optimal_trajectory_planner/"
-        "build/libFrenetOptimalTrajectory.so".format(os.getcwd())
-    )
+        "build/libFrenetOptimalTrajectory.so".format(os.getenv("PYLOT_HOME")))
 
 _c_double_p = POINTER(c_double)
 
@@ -34,42 +33,21 @@ _run_fot.restype = None
 # func / return type declarations for C++ to_frenet_initial_conditions
 _to_frenet_initial_conditions = cdll.to_frenet_initial_conditions
 _to_frenet_initial_conditions.restype = None
-_to_frenet_initial_conditions.argtypes = (
-    c_double,
-    c_double,
-    c_double,
-    c_double,
-    c_double,
-    c_double,
-    _c_double_p,
-    _c_double_p,
-    c_int,
-    _c_double_p
-)
+_to_frenet_initial_conditions.argtypes = (c_double, c_double, c_double,
+                                          c_double, c_double, c_double,
+                                          _c_double_p, _c_double_p, c_int,
+                                          _c_double_p)
+
 
 def _parse_hyperparameters(hp):
-    return FrenetHyperparameters(
-        hp["max_speed"],
-        hp["max_accel"],
-        hp["max_curvature"],
-        hp["max_road_width_l"],
-        hp["max_road_width_r"],
-        hp["d_road_w"],
-        hp["dt"],
-        hp["maxt"],
-        hp["mint"],
-        hp["d_t_s"],
-        hp["n_s_sample"],
-        hp["obstacle_clearance"],
-        hp["kd"],
-        hp["kv"],
-        hp["ka"],
-        hp["kj"],
-        hp["kt"],
-        hp["ko"],
-        hp["klat"],
-        hp["klon"]
-    )
+    return FrenetHyperparameters(hp["max_speed"], hp["max_accel"],
+                                 hp["max_curvature"], hp["max_road_width_l"],
+                                 hp["max_road_width_r"], hp["d_road_w"],
+                                 hp["dt"], hp["maxt"], hp["mint"], hp["d_t_s"],
+                                 hp["n_s_sample"], hp["obstacle_clearance"],
+                                 hp["kd"], hp["kv"], hp["ka"], hp["kj"],
+                                 hp["kt"], hp["ko"], hp["klat"], hp["klon"])
+
 
 def run_fot(initial_conditions, hyperparameters):
     """ Return the frenet optimal trajectory given initial conditions in
@@ -124,8 +102,7 @@ def run_fot(initial_conditions, hyperparameters):
     """
     # parse initial conditions and convert to frenet coordinates
     fot_initial_conditions, misc = to_frenet_initial_conditions(
-        initial_conditions
-    )
+        initial_conditions)
 
     # parse hyper parameters
     fot_hp = _parse_hyperparameters(hyperparameters)
@@ -218,33 +195,28 @@ def to_frenet_initial_conditions(initial_conditions):
 
     # construct return array and convert initial conditions
     misc = np.zeros(5)
-    _to_frenet_initial_conditions(
-        c_double(ps),
-        c_double(x),
-        c_double(y),
-        c_double(vx),
-        c_double(vy),
-        c_double(forward_speed),
-        wx.ctypes.data_as(_c_double_p),
-        wy.ctypes.data_as(_c_double_p),
-        c_int(len(wx)),
-        misc.ctypes.data_as(_c_double_p)
-    )
+    _to_frenet_initial_conditions(c_double(ps), c_double(x), c_double(y),
+                                  c_double(vx), c_double(vy),
+                                  c_double(forward_speed),
+                                  wx.ctypes.data_as(_c_double_p),
+                                  wy.ctypes.data_as(_c_double_p),
+                                  c_int(len(wx)),
+                                  misc.ctypes.data_as(_c_double_p))
 
     # return the FrenetInitialConditions structure
     return FrenetInitialConditions(
-        misc[0], # c_s
-        misc[1], # c_speed
-        misc[2], # c_d
-        misc[3], # c_d_d
-        misc[4], # c_d_dd
-        target_speed, # target speed
-        wx.ctypes.data_as(_c_double_p), # waypoints x position
-        wy.ctypes.data_as(_c_double_p), # waypoints y position
+        misc[0],  # c_s
+        misc[1],  # c_speed
+        misc[2],  # c_d
+        misc[3],  # c_d_d
+        misc[4],  # c_d_dd
+        target_speed,  # target speed
+        wx.ctypes.data_as(_c_double_p),  # waypoints x position
+        wy.ctypes.data_as(_c_double_p),  # waypoints y position
         len(wx),
-        o_llx.ctypes.data_as(_c_double_p), # obstacles lower left x
-        o_lly.ctypes.data_as(_c_double_p), # obstacles lower left y
-        o_urx.ctypes.data_as(_c_double_p), # obstacles upper right x
-        o_ury.ctypes.data_as(_c_double_p), # obstacles upper right y
+        o_llx.ctypes.data_as(_c_double_p),  # obstacles lower left x
+        o_lly.ctypes.data_as(_c_double_p),  # obstacles lower left y
+        o_urx.ctypes.data_as(_c_double_p),  # obstacles upper right x
+        o_ury.ctypes.data_as(_c_double_p),  # obstacles upper right y
         len(o_llx),
     ), misc
