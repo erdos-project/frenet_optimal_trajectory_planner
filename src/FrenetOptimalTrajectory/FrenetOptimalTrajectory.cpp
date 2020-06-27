@@ -23,7 +23,7 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
     best_frenet_path = nullptr;
 
     // exit if not enough waypoints
-    if (x.size() <= 2) {
+    if (x.size() < 2) {
         return;
     }
 
