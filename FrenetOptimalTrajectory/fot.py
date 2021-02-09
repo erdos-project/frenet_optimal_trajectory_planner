@@ -3,9 +3,12 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patch
+import sys, getopt
+from pathlib import Path
 
 
-def main():
+def main(show_animation=False, show_info=False, save_frame=False):
+
     conds = {
         's0': 0,
         'target_speed': 20,
@@ -55,7 +58,7 @@ def main():
     obs = np.array(conds['obs'])
 
     # simulation config
-    show_animation = True
+    # show_animation = False
     sim_loop = 200
     area = 40
     total_time = 0
@@ -75,7 +78,8 @@ def main():
             initial_conditions['pos'] = np.array([result_x[1], result_y[1]])
             initial_conditions['vel'] = np.array([speeds_x[1], speeds_y[1]])
             initial_conditions['ps'] = misc['s']
-            print(costs)
+            if show_info:
+                print(costs)
         else:
             print("Failed unexpectedly")
             break
@@ -111,11 +115,37 @@ def main():
                       np.linalg.norm(initial_conditions['vel']))[0:4]
             )
             plt.grid(True)
-            plt.savefig("{}.jpg".format(i))
+            if save_frame:
+                Path("img/frames").mkdir(parents=True, exist_ok=True)
+                plt.savefig("img/frames/{}.jpg".format(i))
             plt.pause(0.1)
 
     print("Finish")
+    print("Total time for {} iterations taken: {}".format(i, total_time))
     print("Average time per iteration: {}".format(total_time / i))
 
 if __name__ == '__main__':
-    main()
+    argument_list = sys.argv[1:]
+    short_options = "dvs"
+    long_options = ["display", "verbose", "save"]
+
+    try:
+        arguments, values = getopt.getopt(argument_list, short_options, long_options)
+    except getopt.error as err:
+        print (str(err))
+        sys.exit(2)
+
+    enable_verbose, enable_saving, enable_display = False, False, False
+
+    for current_argument, current_value in arguments:
+        if current_argument in ("-d", "--display"):
+            print ("Showing Animation, Ensure you have X11 forwarding server open")
+            enable_display = True
+        elif current_argument in ("-v", "--verbose"):
+            print ("Enabling verbose mode, showing all state info")
+            enable_verbose = True
+        elif current_argument in ("-s", "--save"):
+            print ("Saving each frame of simulation")
+            enable_display, enable_saving = True, True
+
+    main(enable_display, enable_verbose, enable_saving)
