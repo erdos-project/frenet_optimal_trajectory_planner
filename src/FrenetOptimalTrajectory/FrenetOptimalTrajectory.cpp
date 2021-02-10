@@ -1,5 +1,6 @@
 #include <iostream>
 #include <chrono>
+#include <thread>
 
 #include "FrenetOptimalTrajectory.h"
 #include "QuarticPolynomial.h"
@@ -192,7 +193,8 @@ void FrenetOptimalTrajectory::calc_frenet_paths() {
         di += fot_hp->d_road_w;
     }
     valid_path_time *= 1e-6;
-    //cout << "Found " << frenet_paths.size() << " valid paths out of " << num_paths << " paths; Valid path time " << valid_path_time << "\n";
+    // cout << "NUM THREADS = " << fot_hp->num_threads << "\n"; // check if Thread argument is passed down
+    // cout << "Found " << frenet_paths.size() << " valid paths out of " << num_paths << " paths; Valid path time " << valid_path_time << "\n";
 }
 
 void FrenetOptimalTrajectory::setObstacles() {

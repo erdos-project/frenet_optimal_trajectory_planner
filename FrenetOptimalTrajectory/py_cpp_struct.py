@@ -61,4 +61,5 @@ class FrenetHyperparameters(Structure):
         ("ko", c_double),
         ("klat", c_double),
         ("klon", c_double),
+        ("num_threads", c_int)
     ]

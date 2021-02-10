@@ -50,7 +50,8 @@ def main(show_animation=False, show_info=False, save_frame=False):
         "kt": 0.1,
         "ko": 0.1,
         "klat": 1.0,
-        "klon": 1.0
+        "klon": 1.0,
+        "num_threads": 4,
     }
     # static elements of planner
     wx = initial_conditions['wp'][:, 0]
@@ -62,6 +63,7 @@ def main(show_animation=False, show_info=False, save_frame=False):
     sim_loop = 200
     area = 40
     total_time = 0
+    time_list = []
     for i in range(sim_loop):
         # run FOT and keep time
         print("Iteration: {}".format(i))
@@ -72,7 +74,8 @@ def main(show_animation=False, show_info=False, save_frame=False):
         end_time = time.time() - start_time
         print("Time taken: {}".format(end_time))
         total_time += end_time
-
+        time_list.append(end_time)
+        
         # reconstruct initial_conditions
         if success:
             initial_conditions['pos'] = np.array([result_x[1], result_y[1]])
@@ -123,6 +126,18 @@ def main(show_animation=False, show_info=False, save_frame=False):
     print("Finish")
     print("Total time for {} iterations taken: {}".format(i, total_time))
     print("Average time per iteration: {}".format(total_time / i))
+    print("Max time per iteration: {}".format(max(time_list)))
+
+    plt.plot(time_list)
+    plt.hlines(total_time/i, 0, i, colors = 'c', label = 'average time', linestyles = 'dashed')
+    plt.xlabel("Iteration #")
+    plt.ylabel("Time Per Iteration")
+    plt.title("Planning Execution Time Per Iteration")
+    plt.gcf().canvas.mpl_connect(
+        'key_release_event',
+        lambda event: [exit(0) if event.key == 'escape' else None]
+    )
+    plt.show()
 
 if __name__ == '__main__':
     argument_list = sys.argv[1:]

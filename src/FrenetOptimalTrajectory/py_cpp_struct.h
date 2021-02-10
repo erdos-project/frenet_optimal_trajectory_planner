@@ -56,5 +56,6 @@ struct FrenetHyperparameters {
     double ko;
     double klat;
     double klon;
+    int num_threads;
 };
 #endif //FRENETOPTIMALTRAJECTORY_PY_CPP_STRUCT_H
