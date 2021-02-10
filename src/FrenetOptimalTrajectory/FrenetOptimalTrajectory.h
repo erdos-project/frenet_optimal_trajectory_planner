@@ -45,6 +45,7 @@ private:
     vector<double> x, y;
     vector<FrenetPath *> frenet_paths;
     void calc_frenet_paths();
+    void calc_frenet_paths_threaded(int thread_index);
 };
 
 

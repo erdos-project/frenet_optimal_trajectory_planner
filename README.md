@@ -39,5 +39,7 @@ Here are some flags you can pass in
 * `-d`, `--display`, display annimation. Ensure you have X11 forwarding enabled if running on a server.
 * `-v`, `--verbose`, prints detailed states one each iteration.
 * `-s`, `--save`, screenshot each frame and save to `/img/frames`; you can use them to make `.gif`.
+* `-p`, `--profile`, show a plot of runtime profile across iterations.
 
-To specify number of threads, you can go to `fot.py` and edit `num_threads` under `hyperparameters`.
+
+To specify number of threads, you can go to `fot.py` and edit `num_threads` under `hyperparameters`. To not use the threaded version of the algorithm, set `num_threads` to `0`.

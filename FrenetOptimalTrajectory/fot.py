@@ -7,8 +7,8 @@ import sys, getopt
 from pathlib import Path
 
 
-def main(show_animation=False, show_info=False, save_frame=False):
-
+def main(show_animation=False, show_info=False, save_frame=False, profiling = False):
+    
     conds = {
         's0': 0,
         'target_speed': 20,
@@ -51,7 +51,7 @@ def main(show_animation=False, show_info=False, save_frame=False):
         "ko": 0.1,
         "klat": 1.0,
         "klon": 1.0,
-        "num_threads": 4,
+        "num_threads": 1, # set 0 to avoid using threaded version
     }
     # static elements of planner
     wx = initial_conditions['wp'][:, 0]
@@ -124,25 +124,28 @@ def main(show_animation=False, show_info=False, save_frame=False):
             plt.pause(0.1)
 
     print("Finish")
+
+    print("======================= SUMMARY ========================")
     print("Total time for {} iterations taken: {}".format(i, total_time))
     print("Average time per iteration: {}".format(total_time / i))
     print("Max time per iteration: {}".format(max(time_list)))
 
-    plt.plot(time_list)
-    plt.hlines(total_time/i, 0, i, colors = 'c', label = 'average time', linestyles = 'dashed')
-    plt.xlabel("Iteration #")
-    plt.ylabel("Time Per Iteration")
-    plt.title("Planning Execution Time Per Iteration")
-    plt.gcf().canvas.mpl_connect(
-        'key_release_event',
-        lambda event: [exit(0) if event.key == 'escape' else None]
-    )
-    plt.show()
+    if profiling:
+        plt.plot(time_list)
+        plt.hlines(total_time/i, 0, i, colors = 'c', label = 'average time', linestyles = 'dashed')
+        plt.xlabel("Iteration #")
+        plt.ylabel("Time Per Iteration")
+        plt.title("Planning Execution Time Per Iteration")
+        plt.gcf().canvas.mpl_connect(
+            'key_release_event',
+            lambda event: [exit(0) if event.key == 'escape' else None]
+        )
+        plt.show()
 
 if __name__ == '__main__':
     argument_list = sys.argv[1:]
-    short_options = "dvs"
-    long_options = ["display", "verbose", "save"]
+    short_options = "dvsp"
+    long_options = ["display", "verbose", "save", "profile"]
 
     try:
         arguments, values = getopt.getopt(argument_list, short_options, long_options)
@@ -150,7 +153,7 @@ if __name__ == '__main__':
         print (str(err))
         sys.exit(2)
 
-    enable_verbose, enable_saving, enable_display = False, False, False
+    enable_verbose, enable_saving, enable_display, enable_profiling = False, False, False, False
 
     for current_argument, current_value in arguments:
         if current_argument in ("-d", "--display"):
@@ -162,5 +165,8 @@ if __name__ == '__main__':
         elif current_argument in ("-s", "--save"):
             print ("Saving each frame of simulation")
             enable_display, enable_saving = True, True
+        elif current_argument in ("-p", "--profile"):
+            print ("Enabling Time Profiling")
+            enable_profiling = True
 
-    main(enable_display, enable_verbose, enable_saving)
+    main(enable_display, enable_verbose, enable_saving, enable_profiling)
