@@ -37,19 +37,17 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
     // calculate the trajectories
     if (fot_hp->num_threads == 0) {
         calc_frenet_paths();
-    } else {
-        // std::vector<thread> threads(fot_hp->num_threads);
+    } else { // if threading
+        // cout << "Enabling Multi-Threading: Using " << fot_hp->num_threads << " Threads \n"; // for Debugging
+        vector<thread> threads;
+        for (int i = 0; i < fot_hp->num_threads; i++) {
+            threads.push_back(thread(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, i));
+        }
 
-        thread thread0(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, 0);
-        thread thread1(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, 1);
-        // thread thread2(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, 2);
-        // thread thread3(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, 3);
+        for (auto &t : threads) {
+            t.join();
+        }
 
-        thread0.join();
-        thread1.join();
-        // thread2.join();
-        // thread3.join();
-        // calc_frenet_paths();
     }
     
     // select the best path
@@ -95,7 +93,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths_threaded(int thread_index) {
 
     // di goes from [-max_road_width_l, max_road_width_r], in d_road_w increments
     double iter_range = (fot_hp->max_road_width_r + fot_hp->max_road_width_l)/fot_hp->num_threads;
-    // cout << "THREAD: " << thread_index << "\n"; // for multi-threading debugging 
+    // cout << "THREAD: " << thread_index << "\n"; // for multi-threading debugging, threads might fight over cout resources 
     double di = -fot_hp->max_road_width_l + thread_index*iter_range;
     // generate path to each offset goal
     while ((di <= -fot_hp->max_road_width_l + (thread_index+1)*iter_range) && di <= fot_hp->max_road_width_r) {

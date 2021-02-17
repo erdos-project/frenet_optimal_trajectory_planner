@@ -7,8 +7,7 @@ import sys, getopt
 from pathlib import Path
 
 
-def main(show_animation=False, show_info=False, save_frame=False, profiling = False):
-    
+def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=False):
     conds = {
         's0': 0,
         'target_speed': 20,
@@ -51,8 +50,9 @@ def main(show_animation=False, show_info=False, save_frame=False, profiling = Fa
         "ko": 0.1,
         "klat": 1.0,
         "klon": 1.0,
-        "num_threads": 2, # set 0 to avoid using threaded version
+        "num_threads": thread_num, # set 0 to avoid using threaded version
     }
+    
     # static elements of planner
     wx = initial_conditions['wp'][:, 0]
     wy = initial_conditions['wp'][:, 1]
@@ -130,22 +130,12 @@ def main(show_animation=False, show_info=False, save_frame=False, profiling = Fa
     print("Average time per iteration: {}".format(total_time / i))
     print("Max time per iteration: {}".format(max(time_list)))
 
-    if profiling:
-        plt.plot(time_list)
-        plt.hlines(total_time/i, 0, i, colors = 'c', label = 'average time', linestyles = 'dashed')
-        plt.xlabel("Iteration #")
-        plt.ylabel("Time Per Iteration")
-        plt.title("Planning Execution Time Per Iteration")
-        plt.gcf().canvas.mpl_connect(
-            'key_release_event',
-            lambda event: [exit(0) if event.key == 'escape' else None]
-        )
-        plt.show()
+    return time_list
 
 if __name__ == '__main__':
     argument_list = sys.argv[1:]
-    short_options = "dvsp"
-    long_options = ["display", "verbose", "save", "profile"]
+    short_options = "dvspct:"
+    long_options = ["display", "verbose", "save", "profile", "compare", "thread="]
 
     try:
         arguments, values = getopt.getopt(argument_list, short_options, long_options)
@@ -153,7 +143,8 @@ if __name__ == '__main__':
         print (str(err))
         sys.exit(2)
 
-    enable_verbose, enable_saving, enable_display, enable_profiling = False, False, False, False
+    enable_verbose, enable_saving, enable_display, enable_compare, enable_profiling = False, False, False, False, False
+    thread_num = 0 # default unthreaded
 
     for current_argument, current_value in arguments:
         if current_argument in ("-d", "--display"):
@@ -165,8 +156,39 @@ if __name__ == '__main__':
         elif current_argument in ("-s", "--save"):
             print ("Saving each frame of simulation")
             enable_display, enable_saving = True, True
+        elif current_argument in ("-c", "--compare"):
+            print ("Comparing threaded runtime with unthreaded baseline")
+            enable_compare = True
+        elif current_argument in ("-t", "--thread"):
+            print ("Execute with {} threads".format(current_value))
+            thread_num = int(current_value)
         elif current_argument in ("-p", "--profile"):
             print ("Enabling Time Profiling")
             enable_profiling = True
 
-    main(enable_display, enable_verbose, enable_saving, enable_profiling)
+    planner_time = run_fot(enable_display, enable_verbose, thread_num, enable_saving)
+
+    if enable_compare:
+        baseline_time = run_fot(False, False, 0, False)
+
+        print("======================= SPEED UP ========================")
+        print("Average Speed Up per Iteration: {} x".format(np.mean(baseline_time)/np.mean(planner_time)))
+
+    if enable_profiling:
+        if enable_compare:
+            plt.plot(baseline_time, color = 'k', label = 'Baseline')
+            plt.hlines(np.mean(baseline_time), 0, len(baseline_time), colors = 'k', label = 'Baseline mean', linestyles = 'dashed')
+
+        plt.plot(planner_time, color = 'g', label = '{}-Threads'.format(thread_num))
+        plt.hlines(np.mean(planner_time), 0, len(planner_time), colors = 'g', label = 'Threaded mean', linestyles = 'dashed')
+        plt.legend()
+        plt.xlabel("Iteration Number")
+        plt.ylabel("Time Per Iteration")
+        plt.title("Planning Execution Time Per Iteration")
+        plt.gcf().canvas.mpl_connect(
+            'key_release_event',
+            lambda event: [exit(0) if event.key == 'escape' else None]
+        )
+        plt.show()
+    
+    print("=========================================================")
