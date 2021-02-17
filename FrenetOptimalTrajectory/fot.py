@@ -51,7 +51,7 @@ def main(show_animation=False, show_info=False, save_frame=False, profiling = Fa
         "ko": 0.1,
         "klat": 1.0,
         "klon": 1.0,
-        "num_threads": 1, # set 0 to avoid using threaded version
+        "num_threads": 2, # set 0 to avoid using threaded version
     }
     # static elements of planner
     wx = initial_conditions['wp'][:, 0]

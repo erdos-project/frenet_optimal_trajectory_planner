@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <mutex>
 
 #include "FrenetOptimalTrajectory.h"
 #include "QuarticPolynomial.h"
@@ -8,6 +9,8 @@
 #include "utils.h"
 
 using namespace std;
+
+std::mutex mu;
 
 // Compute the frenet optimal trajectory
 FrenetOptimalTrajectory::FrenetOptimalTrajectory(
@@ -38,12 +41,12 @@ FrenetOptimalTrajectory::FrenetOptimalTrajectory(
         // std::vector<thread> threads(fot_hp->num_threads);
 
         thread thread0(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, 0);
-        // thread thread1(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, 1);
+        thread thread1(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, 1);
         // thread thread2(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, 2);
         // thread thread3(&FrenetOptimalTrajectory::calc_frenet_paths_threaded, this, 3);
 
         thread0.join();
-        // thread1.join();
+        thread1.join();
         // thread2.join();
         // thread3.join();
         // calc_frenet_paths();
@@ -92,7 +95,7 @@ void FrenetOptimalTrajectory::calc_frenet_paths_threaded(int thread_index) {
 
     // di goes from [-max_road_width_l, max_road_width_r], in d_road_w increments
     double iter_range = (fot_hp->max_road_width_r + fot_hp->max_road_width_l)/fot_hp->num_threads;
-    cout << "THREAD: " << thread_index << "\n";
+    // cout << "THREAD: " << thread_index << "\n"; // for multi-threading debugging 
     double di = -fot_hp->max_road_width_l + thread_index*iter_range;
     // generate path to each offset goal
     while ((di <= -fot_hp->max_road_width_l + (thread_index+1)*iter_range) && di <= fot_hp->max_road_width_r) {
@@ -205,7 +208,9 @@ void FrenetOptimalTrajectory::calc_frenet_paths_threaded(int thread_index) {
                           fot_hp->klon * tfp->c_longitudinal +
                           fot_hp->ko * tfp->c_inv_dist_to_obstacles;
 
+                mu.lock();
                 frenet_paths.push_back(tfp);
+                mu.unlock();
                 tv += fot_hp->d_t_s;
             }
             ti += fot_hp->dt;
