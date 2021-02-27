@@ -35,18 +35,31 @@ The following command will simulate a simple scenario to run the
 python3 FrenetOptimalTrajectory/fot.py
 ```
 
-To measure speed up
+To measure speed up with threading:
 ```
 python3 FrenetOptimalTrajectory/fot.py -t 4 -p -c
 ```
 
-Here are some flags you can pass in
-* `-d`, `--display`, display annimation. Ensure you have X11 forwarding enabled if running on a server.
+Here are some flags you can pass in:
+* `-d`, `--display`, display animation. Ensure you have X11 forwarding enabled if running on a server.
 * `-v`, `--verbose`, prints detailed states one each iteration.
 * `-s`, `--save`, screenshot each frame and save to `/img/frames`; you can use them to make `.gif`.
-* `-t`, `--thread`, set number of threads. Default will be 0 (no threading). Accpets integer arguments.
-* `-c`, `--compare`, compare threaded program with unthreaded for time profiling.
+* `-t`, `--thread`, set number of threads. Default will be 0 (no threading). Accepts positive integer arguments.
+* `-c`, `--compare`, compare threaded program with unthreaded baseline for time profiling.
 * `-p`, `--profile`, show a plot of runtime profile across iterations.
+* `-f`, `--full`, generate comparisons of runtime and speed up ratio across running planner on different number of threads.
 
 
 Besides using command line input, you can specify number of threads by going to `fot.py` and editing `num_threads` under `hyperparameters`. To not use the threaded version of the algorithm, set `num_threads` to `0`.
+
+### Speed Up Performance
+
+The above flags are mostly used to visualize the effect of threading. To enable threading, pass in `-t NUM_THREADS` and specify the number of threads you want to use. 
+
+Use the `-c` flag to see a speedup comparison between the threaded version and the baseline single-threaded runtime. The `-p` flag gives you a graph of planner runtime across iterations. Below shows an example of comparing runtime per iteration across iterations for using 4 threads vs a single thread.
+
+![Multi-threading Speed Up Performance Comparison](img/profile-comparison.png)
+
+To see the performance across using different number of threads, you can use the `-f` flag. Below shows a comparison of Runtime & Speedup using different number of threads, profiled on a 4-Core CPU with 8 logical processors.
+
+![Multi-threading Speed Up Performance Comparison](img/speed-up-comparison-8-threads.png)

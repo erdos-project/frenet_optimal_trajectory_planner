@@ -50,7 +50,7 @@ def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=Fa
         "ko": 0.1,
         "klat": 1.0,
         "klon": 1.0,
-        "num_threads": thread_num, # set 0 to avoid using threaded version
+        "num_threads": thread_num, # set 0 to avoid using threaded algorithm
     }
     
     # static elements of planner
@@ -59,7 +59,6 @@ def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=Fa
     obs = np.array(conds['obs'])
 
     # simulation config
-    # show_animation = False
     sim_loop = 200
     area = 40
     total_time = 0
@@ -133,18 +132,19 @@ def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=Fa
     return time_list
 
 if __name__ == '__main__':
+
     argument_list = sys.argv[1:]
-    short_options = "dvspct:"
-    long_options = ["display", "verbose", "save", "profile", "compare", "thread="]
+    short_options = "dvspct:f"
+    long_options = ["display", "verbose", "save", "profile", "compare", "thread=", "full"]
+
+    enable_verbose, enable_saving, enable_display, enable_compare, enable_profiling, full_profiling = False, False, False, False, False, False
+    thread_num = 0 # default,, run unthreaded planner
 
     try:
         arguments, values = getopt.getopt(argument_list, short_options, long_options)
     except getopt.error as err:
         print (str(err))
         sys.exit(2)
-
-    enable_verbose, enable_saving, enable_display, enable_compare, enable_profiling = False, False, False, False, False
-    thread_num = 0 # default unthreaded
 
     for current_argument, current_value in arguments:
         if current_argument in ("-d", "--display"):
@@ -165,7 +165,11 @@ if __name__ == '__main__':
         elif current_argument in ("-p", "--profile"):
             print ("Enabling Time Profiling")
             enable_profiling = True
+        elif current_argument in ("-f", "--full"):
+            print ("Full Time Profiling")
+            full_profiling = True
 
+    # run planner with args passed in, record time
     planner_time = run_fot(enable_display, enable_verbose, thread_num, enable_saving)
 
     if enable_compare:
@@ -192,3 +196,35 @@ if __name__ == '__main__':
         plt.show()
     
     print("=========================================================")
+
+
+    # for comparing runtime and speedup across different number of threads
+    # this will profile runtime for running with k threads, for all k < num_thread_upper_bound
+    # it also calculate a speedup ratio compared to baseline (single thread execution)
+    if full_profiling:
+        num_thread_upper_bound = 9
+        full_times = []
+        for i in range(1, num_thread_upper_bound):
+            full_times.append(run_fot(False, False, i, False))
+        
+        full_times_average_time =  [np.mean(full_times[i - 1]) for i in range (1, num_thread_upper_bound)] #  runtime per iteration
+        full_times_speedup = [np.sum(full_times[0])/np.sum(full_times[i - 1]) for i in range (1, num_thread_upper_bound)] # speed up ratio
+
+        fig, ax1 = plt.subplots()
+        num_threads_x_axis = [i for i in range (1, num_thread_upper_bound)]
+
+        color = 'tab:red'
+        ax1.set_xlabel('Number of Threads')
+        ax1.set_ylabel('Average Planner Execution Time Per Iteration (s)', color=color)
+        ax1.plot(num_threads_x_axis, full_times_average_time, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
+
+        ax2 = ax1.twinx()  
+        color = 'tab:blue'
+        ax2.set_ylabel('Speed Up', color=color)  
+        ax2.plot(num_threads_x_axis, full_times_speedup, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
+
+        plt.title("Performance vs Number of Threads")
+        fig.tight_layout()
+        plt.show()

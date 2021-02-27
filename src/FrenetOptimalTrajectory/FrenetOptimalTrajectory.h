@@ -22,6 +22,8 @@
 #include <vector>
 #include <cmath>
 #include <eigen3/Eigen/Dense>
+#include <mutex>
+
 
 using namespace std;
 using namespace Eigen;
@@ -39,6 +41,7 @@ public:
 private:
     FrenetInitialConditions *fot_ic;
     FrenetHyperparameters *fot_hp;
+    mutex *mu;
     FrenetPath *best_frenet_path;
     CubicSpline2D *csp;
     vector<Obstacle *> obstacles;
