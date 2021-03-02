@@ -5,3 +5,4 @@ venv/
 cmake-build-debug/
 *.pyc
 *.jpg
+.clang-format

@@ -3,22 +3,25 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patch
-import sys, getopt
+import argparse
 from pathlib import Path
 
 
-def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=False):
+def run_fot(show_animation=False,
+            show_info=False,
+            num_threads=0,
+            save_frame=False):
     conds = {
-        's0': 0,
-        'target_speed': 20,
+        's0':
+        0,
+        'target_speed':
+        20,
         'wp': [[0, 0], [50, 0], [150, 0]],
-        'obs': [[48, -2, 52, 2],
-                [98, -4, 102, 2],
-                [98, 6, 102, 10],
+        'obs': [[48, -2, 52, 2], [98, -4, 102, 2], [98, 6, 102, 10],
                 [128, 2, 132, 6]],
         'pos': [0, 0],
         'vel': [0, 0],
-    } # paste output from debug log
+    }  # paste output from debug log
 
     initial_conditions = {
         'ps': conds['s0'],
@@ -50,9 +53,9 @@ def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=Fa
         "ko": 0.1,
         "klat": 1.0,
         "klon": 1.0,
-        "num_threads": thread_num, # set 0 to avoid using threaded algorithm
+        "num_threads": num_threads,  # set 0 to avoid using threaded algorithm
     }
-    
+
     # static elements of planner
     wx = initial_conditions['wp'][:, 0]
     wy = initial_conditions['wp'][:, 1]
@@ -74,7 +77,7 @@ def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=Fa
         print("Time taken: {}".format(end_time))
         total_time += end_time
         time_list.append(end_time)
-        
+
         # reconstruct initial_conditions
         if success:
             initial_conditions['pos'] = np.array([result_x[1], result_y[1]])
@@ -95,17 +98,14 @@ def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=Fa
             plt.cla()
             # for stopping simulation with the esc key.
             plt.gcf().canvas.mpl_connect(
-                'key_release_event',
-                lambda event: [exit(0) if event.key == 'escape' else None]
-            )
+                "key_release_event",
+                lambda event: [exit(0) if event.key == "escape" else None])
             plt.plot(wx, wy)
             if obs.shape[0] == 0:
                 obs = np.empty((0, 4))
             ax = plt.gca()
             for o in obs:
-                rect = patch.Rectangle((o[0], o[1]),
-                                       o[2] - o[0],
-                                       o[3] - o[1])
+                rect = patch.Rectangle((o[0], o[1]), o[2] - o[0], o[3] - o[1])
                 ax.add_patch(rect)
             plt.plot(result_x[1:], result_y[1:], "-or")
             plt.plot(result_x[1], result_y[1], "vc")
@@ -113,9 +113,8 @@ def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=Fa
             plt.ylim(result_y[1] - area, result_y[1] + area)
             plt.xlabel("X axis")
             plt.ylabel("Y axis")
-            plt.title("v[m/s]:" + str(
-                      np.linalg.norm(initial_conditions['vel']))[0:4]
-            )
+            plt.title("v[m/s]:" +
+                      str(np.linalg.norm(initial_conditions['vel']))[0:4])
             plt.grid(True)
             if save_frame:
                 Path("img/frames").mkdir(parents=True, exist_ok=True)
@@ -131,99 +130,118 @@ def run_fot(show_animation=False, show_info=False, thread_num = 0, save_frame=Fa
 
     return time_list
 
+
 if __name__ == '__main__':
 
-    argument_list = sys.argv[1:]
-    short_options = "dvspct:f"
-    long_options = ["display", "verbose", "save", "profile", "compare", "thread=", "full"]
-
-    enable_verbose, enable_saving, enable_display, enable_compare, enable_profiling, full_profiling = False, False, False, False, False, False
-    thread_num = 0 # default,, run unthreaded planner
-
-    try:
-        arguments, values = getopt.getopt(argument_list, short_options, long_options)
-    except getopt.error as err:
-        print (str(err))
-        sys.exit(2)
-
-    for current_argument, current_value in arguments:
-        if current_argument in ("-d", "--display"):
-            print ("Showing Animation, Ensure you have X11 forwarding server open")
-            enable_display = True
-        elif current_argument in ("-v", "--verbose"):
-            print ("Enabling verbose mode, showing all state info")
-            enable_verbose = True
-        elif current_argument in ("-s", "--save"):
-            print ("Saving each frame of simulation")
-            enable_display, enable_saving = True, True
-        elif current_argument in ("-c", "--compare"):
-            print ("Comparing threaded runtime with unthreaded baseline")
-            enable_compare = True
-        elif current_argument in ("-t", "--thread"):
-            print ("Execute with {} threads".format(current_value))
-            thread_num = int(current_value)
-        elif current_argument in ("-p", "--profile"):
-            print ("Enabling Time Profiling")
-            enable_profiling = True
-        elif current_argument in ("-f", "--full"):
-            print ("Full Time Profiling")
-            full_profiling = True
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d",
+        "--display",
+        action="store_true",
+        help="show animation, ensure you have X11 forwarding server open")
+    parser.add_argument("-v",
+                        "--verbose",
+                        action="store_true",
+                        help="verbose mode, show all state info")
+    parser.add_argument("-s",
+                        "--save",
+                        action="store_true",
+                        help="save each frame of simulation")
+    parser.add_argument(
+        "-c",
+        "--compare",
+        action="store_true",
+        help="compare threaded runtime with unthreaded baseline")
+    parser.add_argument("-t",
+                        "--thread",
+                        type=int,
+                        default=0,
+                        help="set number of threads to run with")
+    parser.add_argument("-p",
+                        "--profile",
+                        action="store_true",
+                        help="enable time profiling")
+    parser.add_argument("-f",
+                        "--full",
+                        action="store_true",
+                        help="full time profiling")
+    args = parser.parse_args()
 
     # run planner with args passed in, record time
-    planner_time = run_fot(enable_display, enable_verbose, thread_num, enable_saving)
+    planner_time = run_fot(args.display, args.verbose, args.thread, args.save)
 
-    if enable_compare:
+    if args.compare:
         baseline_time = run_fot(False, False, 0, False)
 
         print("======================= SPEED UP ========================")
-        print("Average Speed Up per Iteration: {} x".format(np.mean(baseline_time)/np.mean(planner_time)))
+        print("Average Speed Up per Iteration: {} x".format(
+            np.mean(baseline_time) / np.mean(planner_time)))
 
-    if enable_profiling:
-        if enable_compare:
-            plt.plot(baseline_time, color = 'k', label = 'Baseline')
-            plt.hlines(np.mean(baseline_time), 0, len(baseline_time), colors = 'k', label = 'Baseline mean', linestyles = 'dashed')
+    if args.profile:
+        if args.compare:
+            plt.plot(baseline_time, color="k", label="Baseline")
+            plt.hlines(np.mean(baseline_time),
+                       0,
+                       len(baseline_time),
+                       colors="k",
+                       label="Baseline mean",
+                       linestyles="dashed")
 
-        plt.plot(planner_time, color = 'g', label = '{}-Threads'.format(thread_num))
-        plt.hlines(np.mean(planner_time), 0, len(planner_time), colors = 'g', label = 'Threaded mean', linestyles = 'dashed')
+        plt.plot(planner_time,
+                 color="g",
+                 label="{}-Threads".format(args.thread))
+        plt.hlines(np.mean(planner_time),
+                   0,
+                   len(planner_time),
+                   colors="g",
+                   label="Threaded mean",
+                   linestyles="dashed")
         plt.legend()
         plt.xlabel("Iteration Number")
-        plt.ylabel("Time Per Iteration")
+        plt.ylabel("Time Per Iteration (s)")
         plt.title("Planning Execution Time Per Iteration")
         plt.gcf().canvas.mpl_connect(
-            'key_release_event',
-            lambda event: [exit(0) if event.key == 'escape' else None]
-        )
+            "key_release_event",
+            lambda event: [exit(0) if event.key == "escape" else None])
         plt.show()
-    
+
     print("=========================================================")
 
-
-    # for comparing runtime and speedup across different number of threads
-    # this will profile runtime for running with k threads, for all k < num_thread_upper_bound
-    # it also calculate a speedup ratio compared to baseline (single thread execution)
-    if full_profiling:
+    # For comparing runtime and speedup across different number of threads
+    # this will profile runtime for running with k threads,
+    # for all k < num_thread_upper_bound
+    # Also calculate a speedup ratio compared to the baseline,
+    # which is single thread execution
+    if args.full:
         num_thread_upper_bound = 9
         full_times = []
         for i in range(1, num_thread_upper_bound):
             full_times.append(run_fot(False, False, i, False))
-        
-        full_times_average_time =  [np.mean(full_times[i - 1]) for i in range (1, num_thread_upper_bound)] #  runtime per iteration
-        full_times_speedup = [np.sum(full_times[0])/np.sum(full_times[i - 1]) for i in range (1, num_thread_upper_bound)] # speed up ratio
+
+        full_times_average_time = [
+            np.mean(full_times[i - 1])
+            for i in range(1, num_thread_upper_bound)
+        ]  # runtime per iteration
+        full_times_speedup = [
+            np.sum(full_times[0]) / np.sum(full_times[i - 1])
+            for i in range(1, num_thread_upper_bound)
+        ]  # speed up ratio
 
         fig, ax1 = plt.subplots()
-        num_threads_x_axis = [i for i in range (1, num_thread_upper_bound)]
+        num_threads_x_axis = [i for i in range(1, num_thread_upper_bound)]
 
-        color = 'tab:red'
-        ax1.set_xlabel('Number of Threads')
-        ax1.set_ylabel('Average Planner Execution Time Per Iteration (s)', color=color)
+        color = "tab:red"
+        ax1.set_xlabel("Number of Threads")
+        ax1.set_ylabel("Average Planner Execution Time Per Iteration (s)",
+                       color=color)
         ax1.plot(num_threads_x_axis, full_times_average_time, color=color)
-        ax1.tick_params(axis='y', labelcolor=color)
+        ax1.tick_params(axis="y", labelcolor=color)
 
-        ax2 = ax1.twinx()  
-        color = 'tab:blue'
-        ax2.set_ylabel('Speed Up', color=color)  
+        ax2 = ax1.twinx()
+        color = "tab:blue"
+        ax2.set_ylabel("Speed Up", color=color)
         ax2.plot(num_threads_x_axis, full_times_speedup, color=color)
-        ax2.tick_params(axis='y', labelcolor=color)
+        ax2.tick_params(axis="y", labelcolor=color)
 
         plt.title("Performance vs Number of Threads")
         fig.tight_layout()

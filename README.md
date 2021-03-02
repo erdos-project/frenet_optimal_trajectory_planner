@@ -50,7 +50,7 @@ Here are some flags you can pass in:
 * `-f`, `--full`, generate comparisons of runtime and speed up ratio across running planner on different number of threads.
 
 
-Besides using command line input, you can specify number of threads by going to `fot.py` and editing `num_threads` under `hyperparameters`. To not use the threaded version of the algorithm, set `num_threads` to `0`.
+Besides using command line input, you can specify number of threads by going to `fot.py` and editing `num_threads` under `hyperparameters`. To use the single-threaded implementation of the algorithm, set `num_threads` to `0`.
 
 ### Speed Up Performance
 
