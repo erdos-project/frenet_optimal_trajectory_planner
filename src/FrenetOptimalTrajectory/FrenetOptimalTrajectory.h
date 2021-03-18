@@ -47,8 +47,9 @@ private:
     vector<Obstacle *> obstacles;
     vector<double> x, y;
     vector<FrenetPath *> frenet_paths;
-    void calc_frenet_paths();
-    void calc_frenet_paths_threaded(int start_di_index, int end_di_index);
+    void calc_frenet_paths(int start_di_index, int end_di_index,
+                           bool multithreaded);
+    void threaded_calc_all_frenet_paths();
 };
 
 #endif // FRENET_OPTIMAL_TRAJECTORY_FRENET_OPTIMAL_TRAJECTORY_H
