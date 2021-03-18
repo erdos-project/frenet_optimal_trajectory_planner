@@ -3,20 +3,26 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patch
+import argparse
+from pathlib import Path
 
 
-def main():
+# Run fot planner
+def fot(show_animation=False,
+        show_info=False,
+        num_threads=0,
+        save_frame=False):
     conds = {
-        's0': 0,
-        'target_speed': 20,
+        's0':
+        0,
+        'target_speed':
+        20,
         'wp': [[0, 0], [50, 0], [150, 0]],
-        'obs': [[48, -2, 52, 2],
-                [98, -4, 102, 2],
-                [98, 6, 102, 10],
+        'obs': [[48, -2, 52, 2], [98, -4, 102, 2], [98, 6, 102, 10],
                 [128, 2, 132, 6]],
         'pos': [0, 0],
         'vel': [0, 0],
-    } # paste output from debug log
+    }  # paste output from debug log
 
     initial_conditions = {
         'ps': conds['s0'],
@@ -47,18 +53,20 @@ def main():
         "kt": 0.1,
         "ko": 0.1,
         "klat": 1.0,
-        "klon": 1.0
+        "klon": 1.0,
+        "num_threads": num_threads,  # set 0 to avoid using threaded algorithm
     }
+
     # static elements of planner
     wx = initial_conditions['wp'][:, 0]
     wy = initial_conditions['wp'][:, 1]
     obs = np.array(conds['obs'])
 
     # simulation config
-    show_animation = True
     sim_loop = 200
     area = 40
     total_time = 0
+    time_list = []
     for i in range(sim_loop):
         # run FOT and keep time
         print("Iteration: {}".format(i))
@@ -69,13 +77,15 @@ def main():
         end_time = time.time() - start_time
         print("Time taken: {}".format(end_time))
         total_time += end_time
+        time_list.append(end_time)
 
         # reconstruct initial_conditions
         if success:
             initial_conditions['pos'] = np.array([result_x[1], result_y[1]])
             initial_conditions['vel'] = np.array([speeds_x[1], speeds_y[1]])
             initial_conditions['ps'] = misc['s']
-            print(costs)
+            if show_info:
+                print(costs)
         else:
             print("Failed unexpectedly")
             break
@@ -89,17 +99,14 @@ def main():
             plt.cla()
             # for stopping simulation with the esc key.
             plt.gcf().canvas.mpl_connect(
-                'key_release_event',
-                lambda event: [exit(0) if event.key == 'escape' else None]
-            )
+                "key_release_event",
+                lambda event: [exit(0) if event.key == "escape" else None])
             plt.plot(wx, wy)
             if obs.shape[0] == 0:
                 obs = np.empty((0, 4))
             ax = plt.gca()
             for o in obs:
-                rect = patch.Rectangle((o[0], o[1]),
-                                       o[2] - o[0],
-                                       o[3] - o[1])
+                rect = patch.Rectangle((o[0], o[1]), o[2] - o[0], o[3] - o[1])
                 ax.add_patch(rect)
             plt.plot(result_x[1:], result_y[1:], "-or")
             plt.plot(result_x[1], result_y[1], "vc")
@@ -107,15 +114,46 @@ def main():
             plt.ylim(result_y[1] - area, result_y[1] + area)
             plt.xlabel("X axis")
             plt.ylabel("Y axis")
-            plt.title("v[m/s]:" + str(
-                      np.linalg.norm(initial_conditions['vel']))[0:4]
-            )
+            plt.title("v[m/s]:" +
+                      str(np.linalg.norm(initial_conditions['vel']))[0:4])
             plt.grid(True)
-            plt.savefig("{}.jpg".format(i))
+            if save_frame:
+                Path("img/frames").mkdir(parents=True, exist_ok=True)
+                plt.savefig("img/frames/{}.jpg".format(i))
             plt.pause(0.1)
 
     print("Finish")
+
+    print("======================= SUMMARY ========================")
+    print("Total time for {} iterations taken: {}".format(i, total_time))
     print("Average time per iteration: {}".format(total_time / i))
+    print("Max time per iteration: {}".format(max(time_list)))
+
+    return time_list
+
 
 if __name__ == '__main__':
-    main()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-d",
+        "--display",
+        action="store_true",
+        help="show animation, ensure you have X11 forwarding server open")
+    parser.add_argument("-v",
+                        "--verbose",
+                        action="store_true",
+                        help="verbose mode, show all state info")
+    parser.add_argument("-s",
+                        "--save",
+                        action="store_true",
+                        help="save each frame of simulation")
+    parser.add_argument("-t",
+                        "--thread",
+                        type=int,
+                        default=0,
+                        help="set number of threads to run with")
+    args = parser.parse_args()
+
+    # run planner with args passed in
+    fot(args.display, args.verbose, args.thread, args.save)

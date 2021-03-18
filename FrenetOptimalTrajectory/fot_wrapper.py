@@ -45,7 +45,7 @@ def _parse_hyperparameters(hp):
                                  hp["dt"], hp["maxt"], hp["mint"], hp["d_t_s"],
                                  hp["n_s_sample"], hp["obstacle_clearance"],
                                  hp["kd"], hp["kv"], hp["ka"], hp["kj"],
-                                 hp["kt"], hp["ko"], hp["klat"], hp["klon"])
+                                 hp["kt"], hp["ko"], hp["klat"], hp["klon"], hp["num_threads"])
 
 
 def run_fot(initial_conditions, hyperparameters):
