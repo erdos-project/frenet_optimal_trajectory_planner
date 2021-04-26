@@ -70,3 +70,9 @@ Use the `-c` flag to see a speedup comparison between the threaded version and t
 To see the performance across using different number of threads, you can use the `-f` flag. Below shows a comparison of Runtime & Speedup using different number of threads, profiled on a 4-Core CPU with 8 logical processors.
 
 ![Multi-threading Speed Up Performance Comparison](img/speed-up-comparison-8-threads.png)
+
+
+## Anytime Planner
+This project also contains an anytime version of the Frenet Optimal Trajectory planner. 
+
+The Anytime implementation can be found in `src/FrenetOptimalTrajectory/AnytimeFrenetOptimalTrajectory.cpp`. You can run a quick unit test `./build/AnytimeFrenetOptimalTrajectoryTest` to verify the cpp code works.
