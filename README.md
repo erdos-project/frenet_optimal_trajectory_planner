@@ -78,3 +78,5 @@ This project also contains an anytime version of the Frenet Optimal Trajectory p
 The Anytime implementation can be found in `src/FrenetOptimalTrajectory/AnytimeFrenetOptimalTrajectory.cpp`. You can run a quick unit test `./build/AnytimeFrenetOptimalTrajectoryTest` to verify the cpp code works.
 
 To use the Anytime Planner, we have created a python package called `fot_planner`. You can install it by `./install.sh`. Modify the path to dependencies in `setup.py` if needed.
+
+Try it out using `python FrenetOptimalTrajectory/anytime.py `.

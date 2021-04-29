@@ -25,7 +25,7 @@ def main():
     LDFLAGS = []
     LDFLAGS += ['-Xlinker', '-export-dynamic']
     LDFLAGS += ['-I', '/usr/include/x86_64-linux-gnu/qt5/QtCore', '-l' , 'Qt5Core']
-    LDFLAGS += ['-L' + os.path.join(pwd, 'build'), '-lFrenetOptimalTrajectory']
+    LDFLAGS += ['-L' + os.path.join(pwd, 'build'), '-lPackageFrenetOptimalTrajectory']
     print("linker flag", LDFLAGS)
 
     module = Extension('fot_planner',

@@ -8,20 +8,21 @@
 PyObject *FotPlanner_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     FotPlanner *self = (FotPlanner *)type-> tp_alloc(type, 1);
     self->fot = NULL; // set fot = nullptr
-    printf("Module: planner new\n");
+    printf("New Fot Planner Created\n");
     return (PyObject *) self;
 }
 
 // need to modify it to work with initial conditions later
 int FotPlanner_init(PyObject *self, PyObject *args, PyObject *kwds) {
     // pass IC and HP into this
-    PyObject *ic = NULL;
-    PyObject *hp = NULL;
-    if (PyArg_UnpackTuple(args, "args", 1, 2, &ic, &hp)) {
-        ((FotPlanner *) self)->fot = new AnytimeFrenetOptimalTrajectory((FrenetInitialConditions *) ic, (FrenetHyperparameters *) hp); 
-        printf("Module: planner init\n");
+    PyObject *ic_ptr = NULL;
+    PyObject *hp_ptr = NULL;
+    if (PyArg_UnpackTuple(args, "args", 1, 2, &ic_ptr, &hp_ptr)) {
+        ((FotPlanner *) self)->fot = new AnytimeFrenetOptimalTrajectory(((FotIC*) ic_ptr)->ic, ((FotHP*) hp_ptr)->hp); 
+        printf("Fot Planner Initiated\n");
         return 0;
     } else{
+        printf("Error: Fot Planner cannot be Initiated\n");
         return -1;
     }
 }
@@ -77,7 +78,7 @@ PyTypeObject FotPlannerType = {
     .tp_methods = FotPlanner_methods,
     // .tp_members = FotPlanner_members,
     // .tp_as_mapping
-    // .tp_init = (initproc)FotPlanner_init, // we don't need init here?
+    .tp_init = (initproc)FotPlanner_init,
     .tp_new = FotPlanner_new
 };
 

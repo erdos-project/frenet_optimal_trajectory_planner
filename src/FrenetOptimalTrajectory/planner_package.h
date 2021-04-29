@@ -7,6 +7,16 @@ typedef struct {
     AnytimeFrenetOptimalTrajectory *fot;
 } FotPlanner;
 
+typedef struct {
+    PyObject_HEAD
+    FrenetInitialConditions *ic;
+} FotIC;
+
+typedef struct {
+    PyObject_HEAD
+    FrenetHyperparameters *hp;
+} FotHP;
+
 PyObject *FotPlanner_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 int FotPlanner_init(PyObject *self, PyObject *args, PyObject *kwds);
 void FotPlanner_dealloc(FotPlanner *self);
