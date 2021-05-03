@@ -1,21 +1,22 @@
 // #include <python3.8/Python.h>
-#include <Python.h>
 #include "AnytimeFrenetOptimalTrajectory.h"
+#include <Python.h>
 
 typedef struct {
-    PyObject_HEAD
-    AnytimeFrenetOptimalTrajectory *fot;
+    PyObject_HEAD AnytimeFrenetOptimalTrajectory *fot;
 } FotPlanner;
 
 typedef struct {
-    PyObject_HEAD
-    FrenetInitialConditions *ic;
+    PyObject_HEAD FrenetInitialConditions *ic;
 } FotIC;
 
 typedef struct {
-    PyObject_HEAD
-    FrenetHyperparameters *hp;
+    PyObject_HEAD FrenetHyperparameters *hp;
 } FotHP;
+
+typedef struct {
+    PyObject_HEAD FrenetReturnValues *rv;
+} FotRV;
 
 PyObject *FotPlanner_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
 int FotPlanner_init(PyObject *self, PyObject *args, PyObject *kwds);
