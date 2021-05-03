@@ -6,10 +6,12 @@ import os
 import subprocess
 
 
+# For running external build
 class build_ext(_build_ext.build_ext):
     def run(self):
         command = ["./build.sh", "-p", sys.executable]
         subprocess.check_call(command)
+
 
 class BinaryDistribution(Distribution):
     def has_ext_modules(self):
@@ -19,19 +21,21 @@ class BinaryDistribution(Distribution):
 def main():
     os.environ['CC'] = 'g++'
     os.environ['CXX'] = 'g++'
-
-    # You may find this reference helpful:
-    # https://docs.python.org/3.6/extending/building.html
     pwd = os.path.dirname(os.path.realpath(__file__))
+
+    # Path to Eigen might differ, replace path if necessary
     CFLAGS = [
-        '-std=c++11', '-fPIC', '-shared', '-I', '-Ofast', '-pthread', '-Wall',
+        '-std=c++11', '-fPIC', '-shared', '-I', '-O3', '-pthread', '-Wall',
         '-I/usr/include/eigen3'
     ]
+
     LDFLAGS = []
     LDFLAGS += ['-Xlinker', '-export-dynamic']
+    # Link Qt
     LDFLAGS += [
         '-I', '/usr/include/x86_64-linux-gnu/qt5/QtCore', '-l', 'Qt5Core'
     ]
+    # Link static library libPackageFrenetOptimalTrajectory.a
     LDFLAGS += [
         '-L' + os.path.join(pwd, 'build'), '-lPackageFrenetOptimalTrajectory'
     ]
@@ -52,6 +56,7 @@ def main():
           version="1.0.0",
           description="FOT Planner",
           author="ERDOS Project",
+          url="https://github.com/erdos-project/",
           ext_modules=[module])
 
 

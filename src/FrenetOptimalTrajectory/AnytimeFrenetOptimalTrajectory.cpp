@@ -10,7 +10,9 @@
 
 using namespace std;
 
-// Compute the frenet optimal trajectory
+/**
+ * Set up Conditions to calculate the frenet optimal trajectory
+ */
 AnytimeFrenetOptimalTrajectory::AnytimeFrenetOptimalTrajectory(
     FrenetInitialConditions *fot_ic_, FrenetHyperparameters *fot_hp_) {
     // parse the waypoints and obstacles
@@ -34,7 +36,6 @@ AnytimeFrenetOptimalTrajectory::AnytimeFrenetOptimalTrajectory(
 
     // construct spline path
     csp = new CubicSpline2D(x, y);
-
 }
 
 AnytimeFrenetOptimalTrajectory::~AnytimeFrenetOptimalTrajectory() {
@@ -53,26 +54,28 @@ AnytimeFrenetOptimalTrajectory::~AnytimeFrenetOptimalTrajectory() {
     }
 }
 
-
-// Start planning using a pool of worker threads
+/**
+ * Start planning using a pool of worker threads
+ * Initiate a thread pool, and delegate path planning task to each thread
+ */
 void AnytimeFrenetOptimalTrajectory::asyncPlan() {
 
     run_workers = true; // set run_worker flag
 
     // calculate how to split computation across threads
-    int num_di_iter = static_cast<int>(
-        (fot_hp->max_road_width_l + fot_hp->max_road_width_r) /
-        fot_hp->d_road_w);
+    int num_di_iter =
+        static_cast<int>((fot_hp->max_road_width_l + fot_hp->max_road_width_r) /
+                         fot_hp->d_road_w);
     num_di_iter = num_di_iter + 1; // account for the last index
 
-
-    // in this setup, everything must be run in a thread pool, thus replace 0 threads with 1 thread
-    if (fot_hp->num_threads == 0) { 
+    // in this setup, everything must be run in a thread pool, thus replace 0
+    // threads (indicator of using single-threaded algo) with 1 thread
+    if (fot_hp->num_threads == 0) {
         fot_hp->num_threads = 1;
     }
 
     int iter_di_index_range =
-        static_cast<int>(num_di_iter / fot_hp->num_threads); 
+        static_cast<int>(num_di_iter / fot_hp->num_threads);
 
     for (int i = 0; i < fot_hp->num_threads; i++) {
         if (i != fot_hp->num_threads - 1) {
@@ -82,29 +85,34 @@ void AnytimeFrenetOptimalTrajectory::asyncPlan() {
         } else { // account for last thread edge case
             threads.push_back(
                 new thread(&AnytimeFrenetOptimalTrajectory::calc_frenet_paths,
-                        this, i * iter_di_index_range, num_di_iter));
+                           this, i * iter_di_index_range, num_di_iter));
         }
     }
 
     cout << fot_hp->num_threads << " worker threads initiated\n";
 }
 
-// Stop Planning
+/**
+ * Stop worker threads from planning and join them
+ */
 void AnytimeFrenetOptimalTrajectory::stopPlanning() {
 
     run_workers = false;
 
-    // wait for all threads to finish computation    
+    // wait for all threads to finish computation
     for (auto &t : threads) {
         t->join();
         delete t;
     }
 
-    threads.clear();    
+    threads.clear();
 }
 
-// Return the best path thus far
-FrenetPath *AnytimeFrenetOptimalTrajectory::getBestPath() { 
+/**
+ * Return the best path thus far, look through all the paths worker threads have
+ * found thus far
+ */
+FrenetPath *AnytimeFrenetOptimalTrajectory::getBestPath() {
     mu->lock();
     // select the best path
     double mincost = INFINITY;
@@ -116,7 +124,7 @@ FrenetPath *AnytimeFrenetOptimalTrajectory::getBestPath() {
     }
 
     mu->unlock();
-    return best_frenet_path; 
+    return best_frenet_path;
 }
 
 /*
@@ -127,7 +135,7 @@ FrenetPath *AnytimeFrenetOptimalTrajectory::getBestPath() {
  * (exclusive). Then, computes the actual di value for path planning.
  */
 void AnytimeFrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
-                                                         int end_di_index) {
+                                                       int end_di_index) {
 
     double t, ti, tv;
     double lateral_deviation, lateral_velocity, lateral_acceleration,
@@ -143,8 +151,11 @@ void AnytimeFrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
     // generate path to each offset goal
     // note di goes up to but not including end_di_index*fot_hp->d_road_w
-    while (run_workers && (di < -fot_hp->max_road_width_l + end_di_index * fot_hp->d_road_w) &&
-        (di <= fot_hp->max_road_width_r)) { // TODO: better sol to detect run worker
+    while (
+        run_workers &&
+        (di < -fot_hp->max_road_width_l + end_di_index * fot_hp->d_road_w) &&
+        (di <=
+         fot_hp->max_road_width_r)) { // TODO: better sol to detect run worker
         ti = fot_hp->mint;
 
         // lateral motion planning
@@ -176,7 +187,7 @@ void AnytimeFrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
             // velocity keeping
             tv = fot_ic->target_speed - fot_hp->d_t_s * fot_hp->n_s_sample;
             while (tv <=
-                fot_ic->target_speed + fot_hp->d_t_s * fot_hp->n_s_sample) {
+                   fot_ic->target_speed + fot_hp->d_t_s * fot_hp->n_s_sample) {
                 longitudinal_acceleration = 0;
                 longitudinal_jerk = 0;
 
@@ -231,9 +242,9 @@ void AnytimeFrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
                 tfp->c_lateral_acceleration = lateral_acceleration;
                 tfp->c_lateral_jerk = lateral_jerk;
                 tfp->c_lateral = fot_hp->kd * tfp->c_lateral_deviation +
-                                fot_hp->kv * tfp->c_lateral_velocity +
-                                fot_hp->ka * tfp->c_lateral_acceleration +
-                                fot_hp->kj * tfp->c_lateral_jerk;
+                                 fot_hp->kv * tfp->c_lateral_velocity +
+                                 fot_hp->ka * tfp->c_lateral_acceleration +
+                                 fot_hp->kj * tfp->c_lateral_jerk;
 
                 // longitudinal costs
                 tfp->c_longitudinal_acceleration = longitudinal_acceleration;
@@ -253,8 +264,8 @@ void AnytimeFrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
 
                 // final cost
                 tfp->cf = fot_hp->klat * tfp->c_lateral +
-                        fot_hp->klon * tfp->c_longitudinal +
-                        fot_hp->ko * tfp->c_inv_dist_to_obstacles;
+                          fot_hp->klon * tfp->c_longitudinal +
+                          fot_hp->ko * tfp->c_inv_dist_to_obstacles;
 
                 // added mutex lock to prevent threads competing to write to
                 // frenet_path
@@ -276,7 +287,6 @@ void AnytimeFrenetOptimalTrajectory::calc_frenet_paths(int start_di_index,
     // valid_path_time << "\n";
 }
 
-
 void AnytimeFrenetOptimalTrajectory::setObstacles() {
     // Construct obstacles
     vector<double> llx(fot_ic->o_llx, fot_ic->o_llx + fot_ic->no);
@@ -290,7 +300,7 @@ void AnytimeFrenetOptimalTrajectory::setObstacles() {
 }
 
 void AnytimeFrenetOptimalTrajectory::addObstacle(Vector2f first_point,
-                                          Vector2f second_point) {
+                                                 Vector2f second_point) {
     obstacles.push_back(new Obstacle(std::move(first_point),
                                      std::move(second_point),
                                      fot_hp->obstacle_clearance));

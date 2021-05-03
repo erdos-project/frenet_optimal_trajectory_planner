@@ -4,14 +4,17 @@
 
 /**
  * FotPlanner Defintions
- **/
+ */
 PyObject *FotPlanner_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
     FotPlanner *self = (FotPlanner *)type->tp_alloc(type, 1);
     self->fot = NULL;
     return (PyObject *)self;
 }
 
-// need to modify it to work with initial conditions later
+/**
+ * Initializer for FotPlanner, set up Anytime Planner
+ * with initial condition and hyperparameters
+ */
 int FotPlanner_init(PyObject *self, PyObject *args, PyObject *kwds) {
     // pass IC and HP into this
     PyObject *ic_ptr = NULL;
@@ -27,18 +30,31 @@ int FotPlanner_init(PyObject *self, PyObject *args, PyObject *kwds) {
     }
 }
 
+/**
+ * Deallocate FotPlanner and Planner Instance
+ */
 void FotPlanner_dealloc(FotPlanner *self) {
     printf("fot_planner: Planner dealloced\n");
     delete self->fot;
     Py_TYPE(self)->tp_free(self);
 }
 
+/**
+ * Call Anytime Planner to initiate worker threads
+ * and start planning based on ic and hp
+ */
 static PyObject *method_async_plan(PyObject *self, PyObject *args) {
     ((FotPlanner *)self)->fot->asyncPlan();
     printf("fot_planner: Anytime Fot Planner Start Planning Asynchronously\n");
     return Py_None;
 }
 
+/**
+ * Get current best path from anytime planner,
+ * Require a FotRV as argument, to store the current best path in it
+ * Each query should require a different FotRV, so that different paths are
+ * stored in separate objects
+ */
 static PyObject *method_get_path(PyObject *self, PyObject *args) {
     FrenetPath *best_frenet_path = ((FotPlanner *)self)->fot->getBestPath();
 
@@ -110,12 +126,18 @@ static PyObject *method_get_path(PyObject *self, PyObject *args) {
     }
 }
 
+/**
+ * Stop Planning, calls stopPlanning from c planner
+ */
 static PyObject *method_stop_plan(PyObject *self, PyObject *args) {
     ((FotPlanner *)self)->fot->stopPlanning();
     printf("fot_planner: Planner Stopped Planning\n");
     return Py_None;
 }
 
+/**
+ * Specify Methods for FotPlanner
+ */
 PyMethodDef FotPlanner_methods[] = {
     {"async_plan", method_async_plan, METH_VARARGS, "Start Async Planning"},
     {"get_path", method_get_path, METH_VARARGS, "Get Best Path"},
@@ -124,6 +146,10 @@ PyMethodDef FotPlanner_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
+/**
+ * Define FotPlanner as a PyObject
+ * Link constructor and destructor methods
+ */
 PyTypeObject FotPlannerType = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "fot_planner.FotPlanner",
     .tp_basicsize = sizeof(FotPlanner),
@@ -134,6 +160,9 @@ PyTypeObject FotPlannerType = {
     .tp_init = (initproc)FotPlanner_init,
     .tp_new = FotPlanner_new};
 
+/**
+ * Linking fot_planner to methods
+ */
 static struct PyModuleDef fot_planner_module = {
     PyModuleDef_HEAD_INIT, "fot_planner", "Anytime Fot Planner", -1,
     FotPlanner_methods};

@@ -2,6 +2,7 @@
 #include "AnytimeFrenetOptimalTrajectory.h"
 #include <Python.h>
 
+// custom struct wrapper for C Python API
 typedef struct {
     PyObject_HEAD AnytimeFrenetOptimalTrajectory *fot;
 } FotPlanner;
