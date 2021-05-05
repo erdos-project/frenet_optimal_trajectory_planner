@@ -84,6 +84,6 @@ The Anytime Planner follows monotonicity, that the quality of result only gets b
 
 The Anytime version of the planner can be found in `src/FrenetOptimalTrajectory/AnytimeFrenetOptimalTrajectory.cpp`. This builds on the multi-threaded implementation of the planner. The planner launches a thread pool to start planning (each searching a part of state space), and is able to return the current best path whenever you query it. You can run a quick unit test `./build/AnytimeFrenetOptimalTrajectoryTest` to verify the cpp logic and the monotonicity property.
 
-To use the Anytime planner in Python, we have created a python package called `fot_planner`. You can install it by `./install.sh`. Modify the path to dependencies in `setup.py` if needed. See `src/FrenetOptimalTrajectory/planner_package.cpp` on how we extended Python with C++.
+To use the Anytime planner in Python, we have created a python package called `fot_planner`. You can install it by `./install.sh`. Make sure you upgrade your gcc and g++ version (to g++-9). Modify the library include path to dependencies in `setup.py` if needed. See `src/FrenetOptimalTrajectory/planner_package.cpp` on how we extended Python with C++.
 
 See example usage and simple unit test in `python FrenetOptimalTrajectory/anytime_test.py`.

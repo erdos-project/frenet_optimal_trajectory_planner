@@ -31,13 +31,14 @@ def main():
 
     LDFLAGS = []
     LDFLAGS += ['-Xlinker', '-export-dynamic']
-    # Link Qt
-    LDFLAGS += [
-        '-I', '/usr/include/x86_64-linux-gnu/qt5/QtCore', '-l', 'Qt5Core'
-    ]
+    LDFLAGS += ['-W','-Wno-undef', '-lstdc++', '-static-libstdc++']
+
     # Link static library libPackageFrenetOptimalTrajectory.a
     LDFLAGS += [
         '-L' + os.path.join(pwd, 'build'), '-lPackageFrenetOptimalTrajectory'
+    ]
+    LDFLAGS += [
+        '-I', '/usr/include/x86_64-linux-gnu/qt5/QtCore', '-l', 'Qt5Core'
     ]
     print("Linker Flag:", LDFLAGS)
 
