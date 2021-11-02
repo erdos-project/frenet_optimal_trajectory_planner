@@ -5,11 +5,11 @@ from ctypes import c_double, c_int, POINTER, Structure, CDLL, byref
 
 try:
     from py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
-        FrenetReturnValues, MAX_PATH_LENGTH
+        FrenetReturnValues
 except:
     from frenet_optimal_trajectory_planner.FrenetOptimalTrajectory\
         .py_cpp_struct import FrenetInitialConditions, FrenetHyperparameters, \
-         FrenetReturnValues, MAX_PATH_LENGTH
+         FrenetReturnValues
 
 try:
     cdll = CDLL("build/libFrenetOptimalTrajectory.so")
@@ -111,16 +111,16 @@ def run_fot(initial_conditions, hyperparameters):
     # run the planner
     _run_fot(fot_initial_conditions, fot_hp, fot_rv)
 
-    x_path = np.array([fot_rv.x_path[i] for i in range(MAX_PATH_LENGTH)])
-    y_path = np.array([fot_rv.y_path[i] for i in range(MAX_PATH_LENGTH)])
-    speeds = np.array([fot_rv.speeds[i] for i in range(MAX_PATH_LENGTH)])
-    ix = np.array([fot_rv.ix[i] for i in range(MAX_PATH_LENGTH)])
-    iy = np.array([fot_rv.iy[i] for i in range(MAX_PATH_LENGTH)])
-    iyaw = np.array([fot_rv.iyaw[i] for i in range(MAX_PATH_LENGTH)])
-    d = np.array([fot_rv.d[i] for i in range(MAX_PATH_LENGTH)])
-    s = np.array([fot_rv.s[i] for i in range(MAX_PATH_LENGTH)])
-    speeds_x = np.array([fot_rv.speeds_x[i] for i in range(MAX_PATH_LENGTH)])
-    speeds_y = np.array([fot_rv.speeds_y[i] for i in range(MAX_PATH_LENGTH)])
+    x_path = np.array([fot_rv.x_path[i] for i in range(fot_rv.path_length)])
+    y_path = np.array([fot_rv.y_path[i] for i in range(fot_rv.path_length)])
+    speeds = np.array([fot_rv.speeds[i] for i in range(fot_rv.path_length)])
+    ix = np.array([fot_rv.ix[i] for i in range(fot_rv.path_length)])
+    iy = np.array([fot_rv.iy[i] for i in range(fot_rv.path_length)])
+    iyaw = np.array([fot_rv.iyaw[i] for i in range(fot_rv.path_length)])
+    d = np.array([fot_rv.d[i] for i in range(fot_rv.path_length)])
+    s = np.array([fot_rv.s[i] for i in range(fot_rv.path_length)])
+    speeds_x = np.array([fot_rv.speeds_x[i] for i in range(fot_rv.path_length)])
+    speeds_y = np.array([fot_rv.speeds_y[i] for i in range(fot_rv.path_length)])
     params = {
         "s": fot_rv.params[0],
         "s_d": fot_rv.params[1],
@@ -145,14 +145,8 @@ def run_fot(initial_conditions, hyperparameters):
 
     success = fot_rv.success
 
-    # remove values after last calculated waypoint
-    ind = -1
-    if success:
-        ind = np.where(np.isnan(x_path))[0][0]
-
-    return x_path[:ind], y_path[:ind], speeds[:ind], \
-           ix[:ind], iy[:ind], iyaw[:ind], d[:ind], s[:ind], \
-           speeds_x[:ind], speeds_y[:ind], params, costs, success
+    return x_path, y_path, speeds, ix, iy, iyaw, d, s, \
+           speeds_x, speeds_y, params, costs, success
 
 
 def to_frenet_initial_conditions(initial_conditions):
@@ -228,16 +222,16 @@ def query_anytime_planner_path(fot_planner, return_rv_object=False):
     fot_rv = FrenetReturnValues(0)
     fot_planner.get_path(fot_rv)
 
-    x_path = np.array([fot_rv.x_path[i] for i in range(MAX_PATH_LENGTH)])
-    y_path = np.array([fot_rv.y_path[i] for i in range(MAX_PATH_LENGTH)])
-    speeds = np.array([fot_rv.speeds[i] for i in range(MAX_PATH_LENGTH)])
-    ix = np.array([fot_rv.ix[i] for i in range(MAX_PATH_LENGTH)])
-    iy = np.array([fot_rv.iy[i] for i in range(MAX_PATH_LENGTH)])
-    iyaw = np.array([fot_rv.iyaw[i] for i in range(MAX_PATH_LENGTH)])
-    d = np.array([fot_rv.d[i] for i in range(MAX_PATH_LENGTH)])
-    s = np.array([fot_rv.s[i] for i in range(MAX_PATH_LENGTH)])
-    speeds_x = np.array([fot_rv.speeds_x[i] for i in range(MAX_PATH_LENGTH)])
-    speeds_y = np.array([fot_rv.speeds_y[i] for i in range(MAX_PATH_LENGTH)])
+    x_path = np.array([fot_rv.x_path[i] for i in range(fot_rv.path_length)])
+    y_path = np.array([fot_rv.y_path[i] for i in range(fot_rv.path_length)])
+    speeds = np.array([fot_rv.speeds[i] for i in range(fot_rv.path_length)])
+    ix = np.array([fot_rv.ix[i] for i in range(fot_rv.path_length)])
+    iy = np.array([fot_rv.iy[i] for i in range(fot_rv.path_length)])
+    iyaw = np.array([fot_rv.iyaw[i] for i in range(fot_rv.path_length)])
+    d = np.array([fot_rv.d[i] for i in range(fot_rv.path_length)])
+    s = np.array([fot_rv.s[i] for i in range(fot_rv.path_length)])
+    speeds_x = np.array([fot_rv.speeds_x[i] for i in range(fot_rv.path_length)])
+    speeds_y = np.array([fot_rv.speeds_y[i] for i in range(fot_rv.path_length)])
     params = {
         "s": fot_rv.params[0],
         "s_d": fot_rv.params[1],
@@ -261,17 +255,9 @@ def query_anytime_planner_path(fot_planner, return_rv_object=False):
     }
 
     success = fot_rv.success
-    # remove values after last calculated waypoint
-    ind = -1
-    if success:
-        ind = np.where(np.isnan(x_path))[0][0]
-
     if return_rv_object:
-        return x_path[:ind], y_path[:ind], speeds[:ind], \
-            ix[:ind], iy[:ind], iyaw[:ind], d[:ind], s[:ind], \
-            speeds_x[:ind], speeds_y[:ind], params, costs, success, \
-            fot_rv
+        return x_path, y_path, speeds, ix, iy, iyaw, d, s, \
+            speeds_x, speeds_y, params, costs, success, fot_rv
     else:
-        return x_path[:ind], y_path[:ind], speeds[:ind], \
-            ix[:ind], iy[:ind], iyaw[:ind], d[:ind], s[:ind], \
-            speeds_x[:ind], speeds_y[:ind], params, costs, success
+        return x_path, y_path, speeds, ix, iy, iyaw, d, s, \
+            speeds_x, speeds_y, params, costs, success

@@ -1,5 +1,6 @@
 #include "planner_package.h"
 #include "py_cpp_struct.h"
+#include <stddef.h>
 #include <structmember.h>
 
 /**
@@ -69,8 +70,9 @@ static PyObject *method_get_path(PyObject *self, PyObject *args) {
     }
 
     if (best_frenet_path && !best_frenet_path->x.empty()) {
-        int last = 0;
-        for (size_t i = 0; i < best_frenet_path->x.size(); i++) {
+        fot_rv->success = 1;
+        fot_rv->path_length = std::min(best_frenet_path->x.size(), MAX_PATH_LENGTH);
+        for (size_t i = 0; i < fot_rv->path_length; i++) {
             fot_rv->x_path[i] = best_frenet_path->x[i];
             fot_rv->y_path[i] = best_frenet_path->y[i];
             fot_rv->speeds[i] = best_frenet_path->s_d[i];
@@ -83,21 +85,7 @@ static PyObject *method_get_path(PyObject *self, PyObject *args) {
                 cos(best_frenet_path->yaw[i]) * fot_rv->speeds[i];
             fot_rv->speeds_y[i] =
                 sin(best_frenet_path->yaw[i]) * fot_rv->speeds[i];
-            last += 1;
         }
-
-        // indicate last point in the path
-        fot_rv->success = 1;
-        fot_rv->x_path[last] = NAN;
-        fot_rv->y_path[last] = NAN;
-        fot_rv->speeds[last] = NAN;
-        fot_rv->ix[last] = NAN;
-        fot_rv->iy[last] = NAN;
-        fot_rv->iyaw[last] = NAN;
-        fot_rv->d[last] = NAN;
-        fot_rv->s[last] = NAN;
-        fot_rv->speeds_x[last] = NAN;
-        fot_rv->speeds_y[last] = NAN;
 
         // store info for debug
         fot_rv->params[0] = best_frenet_path->s[1];

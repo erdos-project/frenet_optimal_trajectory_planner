@@ -4,6 +4,7 @@
 #include "CubicSpline2D.h"
 #include "utils.h"
 
+#include <stddef.h>
 #include <vector>
 
 using namespace std;
@@ -36,8 +37,9 @@ extern "C" {
         FrenetOptimalTrajectory fot = FrenetOptimalTrajectory(fot_ic, fot_hp);
         FrenetPath* best_frenet_path = fot.getBestPath();
         if (best_frenet_path && !best_frenet_path->x.empty()){
-            int last = 0;
-            for (size_t i = 0; i < best_frenet_path->x.size(); i++) {
+            fot_rv->success = 1;
+            fot_rv->path_length = std::min(best_frenet_path->x.size(), MAX_PATH_LENGTH);
+            for (size_t i = 0; i < fot_rv->path_length; i++) {
                 fot_rv->x_path[i] = best_frenet_path->x[i];
                 fot_rv->y_path[i] = best_frenet_path->y[i];
                 fot_rv->speeds[i] = best_frenet_path->s_d[i];
@@ -50,21 +52,8 @@ extern "C" {
                     fot_rv->speeds[i];
                 fot_rv->speeds_y[i] = sin(best_frenet_path->yaw[i]) *
                     fot_rv->speeds[i];
-                last += 1;
             }
 
-            // indicate last point in the path
-            fot_rv->success = 1;
-            fot_rv->x_path[last] = NAN;
-            fot_rv->y_path[last] = NAN;
-            fot_rv->speeds[last] = NAN;
-            fot_rv->ix[last] = NAN;
-            fot_rv->iy[last] = NAN;
-            fot_rv->iyaw[last] = NAN;
-            fot_rv->d[last] = NAN;
-            fot_rv->s[last] = NAN;
-            fot_rv->speeds_x[last] = NAN;
-            fot_rv->speeds_y[last] = NAN;
 
             // store info for debug
             fot_rv->params[0] = best_frenet_path->s[1];
