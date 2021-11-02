@@ -23,10 +23,8 @@ int FotPlanner_init(PyObject *self, PyObject *args, PyObject *kwds) {
     if (PyArg_UnpackTuple(args, "args", 1, 2, &ic_ptr, &hp_ptr)) {
         ((FotPlanner *)self)->fot = new AnytimeFrenetOptimalTrajectory(
             ((FotIC *)ic_ptr)->ic, ((FotHP *)hp_ptr)->hp);
-        printf("fot_planner: Anytime Fot Planner Initiated\n");
         return 0;
     } else {
-        printf("Error: Anytime Fot Planner cannot be Initiated\n");
         return -1;
     }
 }
@@ -35,7 +33,6 @@ int FotPlanner_init(PyObject *self, PyObject *args, PyObject *kwds) {
  * Deallocate FotPlanner and Planner Instance
  */
 void FotPlanner_dealloc(FotPlanner *self) {
-    printf("fot_planner: Planner dealloced\n");
     delete self->fot;
     Py_TYPE(self)->tp_free(self);
 }
@@ -46,7 +43,6 @@ void FotPlanner_dealloc(FotPlanner *self) {
  */
 static PyObject *method_async_plan(PyObject *self, PyObject *args) {
     ((FotPlanner *)self)->fot->asyncPlan();
-    printf("fot_planner: Anytime Fot Planner Start Planning Asynchronously\n");
     return Py_None;
 }
 
@@ -109,7 +105,6 @@ static PyObject *method_get_path(PyObject *self, PyObject *args) {
         fot_rv->costs[11] = best_frenet_path->cf;
         return Py_None;
     } else {
-        printf("No valid path available\n");
         return Py_None;
     }
 }
@@ -119,7 +114,6 @@ static PyObject *method_get_path(PyObject *self, PyObject *args) {
  */
 static PyObject *method_stop_plan(PyObject *self, PyObject *args) {
     ((FotPlanner *)self)->fot->stopPlanning();
-    printf("fot_planner: Planner Stopped Planning\n");
     return Py_None;
 }
 
@@ -169,7 +163,5 @@ PyMODINIT_FUNC PyInit_fot_planner(void) {
         return NULL;
 
     PyModule_AddObject(m, "FotPlanner", (PyObject *)&FotPlannerType);
-    printf("fot_planner Module imported!\n");
-    fflush(stdout);
     return m;
 }
