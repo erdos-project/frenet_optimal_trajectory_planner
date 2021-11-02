@@ -4,7 +4,7 @@
 #########################################
 from fot_wrapper import _parse_hyperparameters, \
                     to_frenet_initial_conditions, query_anytime_planner_path
-import fot_planner as fp
+import fot_planner
 import numpy as np
 import time
 
@@ -71,7 +71,7 @@ NUM_ITER = 10
 TEST_INTERVAL_TIME = 0.002  # in seconds
 
 # Calling Anytime Planner
-planner = fp.FotPlanner(ic, hp)
+planner = fot_planner.FotPlanner(ic, hp)
 planner.async_plan()
 
 prev_cf, curr_cf = np.inf, np.inf
