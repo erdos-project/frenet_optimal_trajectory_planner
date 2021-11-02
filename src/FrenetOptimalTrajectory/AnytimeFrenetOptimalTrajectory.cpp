@@ -88,8 +88,6 @@ void AnytimeFrenetOptimalTrajectory::asyncPlan() {
                            this, i * iter_di_index_range, num_di_iter));
         }
     }
-
-    cout << fot_hp->num_threads << " worker threads initiated\n";
 }
 
 /**
