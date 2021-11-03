@@ -1,4 +1,4 @@
-from ctypes import c_double, c_int, POINTER, Structure, CDLL
+from ctypes import c_double, c_int, c_size_t, POINTER, Structure, CDLL
 
 _c_double_p = POINTER(c_double)
 
@@ -25,6 +25,7 @@ class FrenetInitialConditions(Structure):
 class FrenetReturnValues(Structure):
     _fields_ = [
         ("success", c_int),
+        ("path_length", c_size_t),
         ("x_path", c_double * MAX_PATH_LENGTH),
         ("y_path", c_double * MAX_PATH_LENGTH),
         ("speeds", c_double * MAX_PATH_LENGTH),

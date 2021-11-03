@@ -1,6 +1,8 @@
 #ifndef FRENETOPTIMALTRAJECTORY_PY_CPP_STRUCT_H
 #define FRENETOPTIMALTRAJECTORY_PY_CPP_STRUCT_H
-const int MAX_PATH_LENGTH = 100;
+#include <stddef.h>
+
+const size_t MAX_PATH_LENGTH = 100;
 
 struct FrenetInitialConditions {
     double s0;
@@ -21,6 +23,7 @@ struct FrenetInitialConditions {
 
 struct FrenetReturnValues {
     int success;
+    size_t path_length;
     double x_path[MAX_PATH_LENGTH];
     double y_path[MAX_PATH_LENGTH];
     double speeds[MAX_PATH_LENGTH];

@@ -70,3 +70,20 @@ Use the `-c` flag to see a speedup comparison between the threaded version and t
 To see the performance across using different number of threads, you can use the `-f` flag. Below shows a comparison of Runtime & Speedup using different number of threads, profiled on a 4-Core CPU with 8 logical processors.
 
 ![Multi-threading Speed Up Performance Comparison](img/speed-up-comparison-8-threads.png)
+
+
+## Anytime Planner
+This project also contains an Anytime implementation of the Frenet Optimal Trajectory planner. 
+
+You can read more about Anytime Algorithms at:
+* Zilberstein, S. 1996. Using Anytime Algorithms in Intelligent Systems. AI Magazine. 17, 3 (Mar. 1996), 73. DOI:https://doi.org/10.1609/aimag.v17i3.1232.
+
+The Anytime FOT Planner differs from the regular planner in that the planner will immediately return with an available path when queried. The regular planner exhaustively searches through all possible paths to return a result (which is the best path among all the paths it found). In contrast, the anytime planner immediately returns the best path found so far. In a time-constrained setting, this allows to quickly use a slightly proceed with a feasible plan, rather than waiting for planner to search through possibilities to find the best plan.
+
+The Anytime Planner is monotonic in path quality, meaning that the quality of the returned path does not get worse with time. In this case, the cost of the paths only decreases or stays the same every time the planner is queried.
+
+The Anytime version of the planner can be found in `src/FrenetOptimalTrajectory/AnytimeFrenetOptimalTrajectory.cpp`. This builds on the multi-threaded implementation of the planner. The planner launches a thread pool to start planning (each searching a part of state space), and is able to return the current best path when queried. `./build/AnytimeFrenetOptimalTrajectoryTest` contains a unit test to verify the C++ logic and the monotonicity property.
+
+To use the Anytime planner in Python, we have created a python package called `fot_planner` which can be installed with `./install.sh`. Make sure to upgrade your gcc and g++ version to g++-9. Modify the library include path to dependencies in `setup.py` if needed. See `src/FrenetOptimalTrajectory/planner_package.cpp` on how we extended Python with C++.
+
+To run the python example, execute `python FrenetOptimalTrajectory/anytime_test.py`.
